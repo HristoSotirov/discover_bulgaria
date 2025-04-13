@@ -1,86 +1,136 @@
-// import 'package:flutter/material.dart';
-// import 'screens/RegisterScreen.dart'; // 👈 добави този импорт
-// import 'supabase_config.dart';
-//
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await SupabaseConfig.initialize();
-//   runApp(MyApp());
-// }
-//
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       debugShowCheckedModeBanner: false,
-//       title: 'Flutter Supabase Demo',
-//       home: const RegisterScreen(),
-//     );
-//   }
-// }
-
-//
-// import 'package:flutter/material.dart';
-// import 'models/user_model.dart';
-// import 'services/user_service.dart';
-// import 'screens/user_screen.dart';
-// import 'supabase_config.dart';
-//
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await SupabaseConfig.initialize();
-//
-//   final user = await UserService().getUserById('4d48b730-25ba-4e05-82a0-5e9f0b9b8d0d');
-//
-//   runApp(MyApp(user: user!));
-// }
-//
-// class MyApp extends StatelessWidget {
-//   final UserModel user;
-//
-//   const MyApp({super.key, required this.user});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       debugShowCheckedModeBanner: false,
-//       home: UserProfileScreen(
-//         user: user,
-//         landmarksCount: 7, // може да го вземеш отделно по-късно
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
-import 'models/user_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'config/preferences_manager.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/user_screen.dart';
+import 'screens/admin_screen.dart';
 import 'services/user_service.dart';
-import 'screens/main_navigation_screen.dart';
+import 'models/enums/user_type.dart';
 import 'supabase_config.dart';
 
-void main() async {
+import 'screens/main_navigation_screen.dart'; //
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Supabase client first
   await SupabaseConfig.initialize();
 
-  final user = await UserService().getUserById('4d48b730-25ba-4e05-82a0-5e9f0b9b8d0d');
+  // Initialize preferences manager and wait for it to complete
+  final prefsManager = PreferencesManager();
+  await prefsManager.initializePreferences();
 
-  runApp(MyApp(user: user!));
+  runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  final UserModel user;
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
 
-  const MyApp({super.key, required this.user});
+class _MyAppState extends State<MyApp> {
+  final _prefsManager = PreferencesManager();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: MainNavigationScreen(
-        user: user,
-        landmarksCount: 7, // зареди реално по желание
+      home: FutureBuilder<Widget>(
+        future: _determineInitialScreen(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              backgroundColor: _prefsManager.currentColors['background'],
+              body: Center(
+                child: CircularProgressIndicator(
+                  color: _prefsManager.currentColors['button'],
+                ),
+              ),
+            );
+          }
+
+          if (snapshot.hasError) {
+            print('Error loading initial screen: ${snapshot.error}');
+            return OnboardingScreen();
+          }
+
+          return snapshot.data ?? OnboardingScreen();
+        },
       ),
     );
   }
-}
 
+  // Future<Widget> _determineInitialScreen() async {
+  //   try {
+  //     await _prefsManager.initializePreferences();
+  //
+  //     if (!_prefsManager.isOnboardingDone) {
+  //       return OnboardingScreen();
+  //     }
+  //
+  //     final userId = _prefsManager.userId;
+  //     if (userId != null) {
+  //       try {
+  //         final user = await UserService().getUserById(userId);
+  //         if (user != null) {
+  //           // Return different screens based on user type
+  //           if (user.userType == UserType.admin) {
+  //             return AdminScreen(
+  //               userId: userId,
+  //               initialUserData: user,
+  //             );
+  //           } else {
+  //             return UserScreen(
+  //               userId: userId,
+  //               initialUserData: user,
+  //             );
+  //           }
+  //         }
+  //       } catch (e) {
+  //         print('Error fetching user: $e');
+  //         await _prefsManager.clearUserSession();
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Error determining initial screen: $e');
+  //   }
+  //
+  //   return OnboardingScreen();
+  // }
+
+  Future<Widget> _determineInitialScreen() async {
+    try {
+      await _prefsManager.initializePreferences();
+
+      if (!_prefsManager.isOnboardingDone) {
+        return OnboardingScreen();
+      }
+
+      final userId = _prefsManager.userId;
+      if (userId != null) {
+        try {
+          final user = await UserService().getUserById(userId);
+          if (user != null) {
+            if (user.userType == UserType.admin) {
+              return AdminScreen(
+                userId: userId,
+                initialUserData: user,
+              );
+            } else {
+              // ✅ Показваме потребителския интерфейс с долна навигация
+              return MainNavigationScreen(user: user);
+            }
+          }
+        } catch (e) {
+          print('Error fetching user: $e');
+          await _prefsManager.clearUserSession();
+        }
+      }
+    } catch (e) {
+      print('Error determining initial screen: $e');
+    }
+
+    return OnboardingScreen();
+  }
+
+}

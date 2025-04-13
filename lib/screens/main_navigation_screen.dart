@@ -8,12 +8,10 @@ import '../config/app_text_styles.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final UserModel user;
-  final int landmarksCount;
 
   const MainNavigationScreen({
     super.key,
     required this.user,
-    required this.landmarksCount,
   });
 
   @override
@@ -30,9 +28,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final textStyles = AppTextStyles.getStyles(isDark);
 
     final screens = [
-      UserProfileScreen(
-        user: widget.user,
-        landmarksCount: widget.landmarksCount,
+      UserScreen(
+        userId: widget.user.id!,
+        initialUserData: widget.user,
       ),
       const MapScreen(),
       RankingScreen(

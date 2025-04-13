@@ -2,55 +2,124 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart'; // поправен import (малка буква)
 
 class UserService {
-  final SupabaseClient _client = Supabase.instance.client;
-  final String _table = 'users';
+  final _supabase = Supabase.instance.client;
 
-  /// Създаване на потребител, без ръчно подаване на id
-  Future<void> createUser(UserModel user) async {
+  Future<UserModel?> loginUser(String email, String password) async {
     try {
-      await _client.from(_table).insert(user.toJson());
-    } catch (error) {
-      throw Exception('Failed to create user: $error');
+      final response = await _supabase
+          .from('users')
+          .select()
+          .eq('email', email)
+          .eq('password', password)
+          .maybeSingle();
+
+      if (response == null) {
+        throw Exception('Invalid credentials');
+      }
+
+      final userData = Map<String, dynamic>.from(response as Map<String, dynamic>);
+      userData['points'] = userData['points'] ?? 0;
+      userData['streaks'] = userData['streaks'] ?? 0;
+      userData['user_type'] = userData['user_type'] ?? 'user';
+      userData['is_daily_quiz_done'] = userData['is_daily_quiz_done'] ?? false;
+
+      return UserModel.fromJson(userData);
+    } catch (e) {
+      print('Login error: $e');
+      if (e.toString().contains('Invalid credentials')) {
+        throw Exception('Invalid credentials');
+      }
+      throw Exception('Server error occurred. Please try again later.');
     }
   }
 
-  Future<UserModel?> getUserById(String id) async {
+  Future<void> createUser(UserModel user) async {
     try {
-      final data = await _client.from(_table).select().eq('id', id).single();
-      return UserModel.fromJson(data);
-    } catch (error) {
-      throw Exception('Failed to get user by id: $error');
+      await _supabase.from('users').insert(user.toJson());
+    } catch (e) {
+      throw Exception('User creation failed: $e');
+    }
+  }
+
+  Future<UserModel?> getUserById(String userId) async {
+    try {
+      final response = await _supabase
+          .from('users')
+          .select()
+          .eq('id', userId)
+          .single();
+
+      if (response != null) {
+        return UserModel.fromJson(response as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      throw Exception('Failed to get user: $e');
+    }
+  }
+
+  Future<void> updateUser(UserModel user) async {
+    if (user.id == null) {
+      throw Exception('User ID cannot be null');
+    }
+    try {
+      await _supabase
+          .from('users')
+          .update(user.toJson())
+          .eq('id', user.id!);
+    } catch (e) {
+      throw Exception('Failed to update user: $e');
+    }
+  }
+
+  Future<void> deleteUser(String userId) async {
+    try {
+      await _supabase
+          .from('users')
+          .delete()
+          .eq('id', userId);
+    } catch (e) {
+      throw Exception('Failed to delete user: $e');
     }
   }
 
   Future<List<UserModel>> getAllUsers() async {
     try {
-      final List<dynamic> data = await _client.from(_table).select();
-      return data.map((e) => UserModel.fromJson(e)).toList();
-    } catch (error) {
-      throw Exception('Failed to get all users: $error');
+      final response = await _supabase
+          .from('users')
+          .select()
+          .order('points', ascending: false);
+
+      if (response == null) return [];
+
+      return (response as List<dynamic>)
+          .map((data) => UserModel.fromJson(data as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get users: $e');
     }
   }
 
-  /// Ъпдейт изисква `id`, така че трябва да е set-нато
-  Future<void> updateUser(UserModel user) async {
-    if (user.id == null) {
-      throw Exception('Cannot update user without ID');
-    }
-
+  Future<void> updateUserPoints(String userId, int points) async {
     try {
-      await _client.from(_table).update(user.toJson()).eq('id', user.id!);
-    } catch (error) {
-      throw Exception('Failed to update user: $error');
+      await _supabase
+          .from('users')
+          .update({'points': points})
+          .eq('id', userId);
+    } catch (e) {
+      throw Exception('Failed to update points: $e');
     }
   }
 
-
-  Future<void> deleteUser(String id) async {
+  Future<void> updateUserStreak(String userId, int streaks) async {
     try {
-      await _client.from(_table).delete().eq('id', id);
-    } catch (error) {
-      throw Exception('Failed to delete user: $error');
+      await _supabase
+          .from('users')
+          .update({'streaks': streaks})
+          .eq('id', userId);
+    } catch (e) {
+      throw Exception('Failed to update streak: $e');
     }
   }
 }
+
