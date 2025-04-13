@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/user_model.dart';
+import '../models/user_model.dart'; // поправен import (малка буква)
 
 class UserService {
   final _supabase = Supabase.instance.client;
@@ -12,17 +12,17 @@ class UserService {
           .eq('email', email)
           .eq('password', password)
           .maybeSingle();
-      
+
       if (response == null) {
         throw Exception('Invalid credentials');
       }
-      
+
       final userData = Map<String, dynamic>.from(response as Map<String, dynamic>);
       userData['points'] = userData['points'] ?? 0;
       userData['streaks'] = userData['streaks'] ?? 0;
       userData['user_type'] = userData['user_type'] ?? 'user';
       userData['is_daily_quiz_done'] = userData['is_daily_quiz_done'] ?? false;
-      
+
       return UserModel.fromJson(userData);
     } catch (e) {
       print('Login error: $e');
@@ -48,7 +48,7 @@ class UserService {
           .select()
           .eq('id', userId)
           .single();
-      
+
       if (response != null) {
         return UserModel.fromJson(response as Map<String, dynamic>);
       }
@@ -89,9 +89,9 @@ class UserService {
           .from('users')
           .select()
           .order('points', ascending: false);
-      
+
       if (response == null) return [];
-      
+
       return (response as List<dynamic>)
           .map((data) => UserModel.fromJson(data as Map<String, dynamic>))
           .toList();

@@ -1,200 +1,430 @@
+//
+// import 'package:flutter/material.dart';
+// import '../config/app_colors.dart';
+// import '../config/app_text_styles.dart';
+// import '../models/user_model.dart';
+//
+// class UserScreen extends StatelessWidget {
+//   final UserModel user;
+//   final int landmarksCount;
+//
+//   const UserScreen({
+//     Key? key,
+//     required this.user,
+//     required this.landmarksCount,
+//   }) : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     print("Opened UserProfileScreen for: \${user.name} / \${user.rankType}");
+//
+//     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+//     final colors = AppColors.getColors(isDarkMode);
+//     final textStyles = AppTextStyles.getStyles(isDarkMode);
+//
+//     return Scaffold(
+//       backgroundColor: colors['background'],
+//       body: SafeArea(
+//         child: Padding(
+//           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+//           child: SingleChildScrollView(
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 // Header: name + rank + avatar
+//                 Row(
+//                   children: [
+//                     Expanded(
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           Text(user.name, style: textStyles['headingLarge']),
+//                           Text(
+//                             user.rankType?.toShortString() ?? 'No Rank',
+//                             style: textStyles['bodyRegular'],
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                     CircleAvatar(
+//                       radius: 35,
+//                       backgroundImage: user.imageUrl != null
+//                           ? NetworkImage(user.imageUrl!)
+//                           : null,
+//                       child: user.imageUrl == null
+//                           ? const Icon(Icons.person, size: 35)
+//                           : null,
+//                     ),
+//                   ],
+//                 ),
+//                 const SizedBox(height: 20),
+//
+//                 // Stats box
+//                 Container(
+//                   padding: const EdgeInsets.all(12),
+//                   decoration: BoxDecoration(
+//                     color: colors['box'],
+//                     borderRadius: BorderRadius.circular(12),
+//                   ),
+//                   child: Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceAround,
+//                     children: [
+//                       _statItem(Icons.rocket_launch, 'Points', user.points, textStyles),
+//                       _statItem(Icons.account_balance, 'Landmarks', landmarksCount, textStyles),
+//                       _statItem(Icons.local_fire_department, 'Streak', user.streaks, textStyles),
+//                     ],
+//                   ),
+//                 ),
+//                 const SizedBox(height: 20),
+//
+//                 // What's nearby card
+//                 _actionCard(
+//                   icon: Icons.signpost,
+//                   text: "See what's nearby",
+//                   buttonText: "Let's see",
+//                   onPressed: () {
+//                     // TODO: handle nearby map navigation
+//                   },
+//                   colors: colors,
+//                   textStyles: textStyles,
+//                 ),
+//                 const SizedBox(height: 20),
+//
+//                 // Daily quiz card
+//                 SizedBox(
+//                   width: double.infinity,
+//                   height: 400,
+//                   child: Container(
+//                     padding: const EdgeInsets.all(16),
+//                     decoration: BoxDecoration(
+//                       color: colors['box'],
+//                       borderRadius: BorderRadius.circular(12),
+//                     ),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Center(
+//                           child: Text(
+//                             "It looks like it is time\nfor your daily quiz!",
+//                             style: textStyles['headingLarge'],
+//                             textAlign: TextAlign.left,
+//                           ),
+//                         ),
+//                         const SizedBox(height: 16),
+//
+//                         // Снимка по-голяма и наляво
+//                         Align(
+//                           alignment: Alignment.center,
+//                           child: Image.asset(
+//                             'assets/quiz.webp',
+//                             height: 200,
+//                             fit: BoxFit.contain,
+//                           ),
+//                         ),
+//
+//                         const Spacer(),
+//
+//                         // Бутон подравнен надясно (като "Let's see")
+//                         Row(
+//                           mainAxisAlignment: MainAxisAlignment.end,
+//                           children: [
+//                             ElevatedButton(
+//                               style: ElevatedButton.styleFrom(
+//                                 backgroundColor: colors['button'],
+//                                 foregroundColor: Colors.white,
+//                               ),
+//                               onPressed: () {
+//                                 // TODO: start quiz
+//                               },
+//                               child: const Text("Let's start"),
+//                             ),
+//                           ],
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+//
+//   Widget _statItem(IconData icon, String label, int value, Map<String, TextStyle> textStyles) {
+//     return Column(
+//       children: [
+//         Icon(icon, size: 28),
+//         const SizedBox(height: 4),
+//         Text(label, style: textStyles['bodyRegular']),
+//         Text(value.toString(), style: textStyles['headingLarge']),
+//       ],
+//     );
+//   }
+//
+//   Widget _actionCard({
+//     required IconData icon,
+//     required String text,
+//     required String buttonText,
+//     required VoidCallback onPressed,
+//     required Map<String, Color> colors,
+//     required Map<String, TextStyle> textStyles,
+//   }) {
+//     return Container(
+//       padding: const EdgeInsets.all(16),
+//       decoration: BoxDecoration(
+//         color: colors['box'],
+//         borderRadius: BorderRadius.circular(12),
+//       ),
+//       child: Row(
+//         children: [
+//           Icon(icon, size: 40),
+//           const SizedBox(width: 16),
+//           Expanded(child: Text(text, style: textStyles['bodyRegular'])),
+//           ElevatedButton(
+//             style: ElevatedButton.styleFrom(
+//               backgroundColor: colors['button'],
+//               foregroundColor: Colors.white,
+//             ),
+//             onPressed: onPressed,
+//             child: Text(buttonText),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
+import '../config/app_text_styles.dart';
 import '../models/user_model.dart';
-import '../config/preferences_manager.dart';
 import '../services/user_service.dart';
-import 'login_screen.dart';  // Add this import
 
 class UserScreen extends StatefulWidget {
   final String userId;
-  final UserModel? initialUserData; // Add this field
+  final UserModel initialUserData;
 
   const UserScreen({
-    Key? key, 
-    required this.userId, 
-    this.initialUserData, // Add this parameter
+    Key? key,
+    required this.userId,
+    required this.initialUserData,
   }) : super(key: key);
 
   @override
-  _UserScreenState createState() => _UserScreenState();
+  State<UserScreen> createState() => _UserScreenState();
 }
 
 class _UserScreenState extends State<UserScreen> {
-  final _prefsManager = PreferencesManager();
-  UserModel? _user;
-  bool _isLoading = true;
+  late UserModel user;
+  int landmarksCount = 0;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _prefsManager.addListener(_handlePrefsChange);
-    if (widget.initialUserData != null) {
-      // If we have initial data, use it immediately
-      setState(() {
-        _user = widget.initialUserData;
-        _isLoading = false;
-      });
-    } else {
-      // Otherwise load from the server
-      _loadUserData();
-    }
+    user = widget.initialUserData;
+    _loadUserAndLandmarks();
   }
 
-  @override
-  void dispose() {
-    _prefsManager.removeListener(_handlePrefsChange);
-    super.dispose();
-  }
-
-  void _handlePrefsChange() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future<void> _loadUserData() async {
+  Future<void> _loadUserAndLandmarks() async {
     try {
-      final user = await UserService().getUserById(widget.userId);
-      if (mounted) {
-        setState(() {
-          _user = user;
-          _isLoading = false;
-        });
-      }
+      final fetchedUser = await UserService().getUserById(widget.userId);
+      //final count = await UserService().getLandmarksCount(widget.userId);
+      final count = 7;
+
+
+      if (!mounted) return;
+
+      setState(() {
+        user = fetchedUser ?? widget.initialUserData;
+        landmarksCount = count;
+        isLoading = false;
+      });
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _user = null;
-        });
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading user data: ${e.toString()}')),
-        );
-      }
+      print("Error loading user screen: $e");
+      setState(() => isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final colors = AppColors.getColors(isDarkMode);
+    final textStyles = AppTextStyles.getStyles(isDarkMode);
+
+    if (isLoading) {
+      return Scaffold(
+        backgroundColor: colors['background'],
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    print("Opened UserProfileScreen for: ${user.name} / ${user.rankType}");
+
     return Scaffold(
-      backgroundColor: _prefsManager.currentColors['background'],
-      appBar: AppBar(
-        backgroundColor: _prefsManager.currentColors['appBar'],
-        title: FutureBuilder<String>(
-          future: _prefsManager.translate('Профил'),
-          builder: (context, snapshot) {
-            return Text(
-              snapshot.data ?? 'Profile',
-              style: _prefsManager.currentStyles['headingLarge'] ?? 
-                const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            );
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _isLoading ? null : _loadUserData,
-            color: _prefsManager.currentColors['text'],
-          ),
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () async {
-              // Clear user session but keep onboarding status
-              await _prefsManager.clearUserSession();
-              if (!mounted) return;
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-                (route) => false,
-              );
-            },
-            color: _prefsManager.currentColors['text'],
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator(
-              color: _prefsManager.currentColors['button']))
-          : _user == null
-              ? FutureBuilder<String>(
-                  future: _prefsManager.translate('Потребителят не е намерен'),
-                  builder: (context, snapshot) {
-                    return Center(child: Text(
-                      snapshot.data ?? 'User not found',
-                      style: _prefsManager.currentStyles['bodyRegular'] ?? 
-                        const TextStyle(fontSize: 16),
-                    ));
-                  },
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: FutureBuilder(
-                    future: Future.wait([
-                      _prefsManager.translate('Име'),
-                      _prefsManager.translate('Имейл'),
-                      _prefsManager.translate('Точки'),
-                      _prefsManager.translate('Поредица'),
-                      _prefsManager.translate('Тип потребител'),
-                      _prefsManager.translate('Рождена дата'),
-                    ]),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return Center(child: CircularProgressIndicator(
-                          color: _prefsManager.currentColors['button']
-                        ));
-                      }
-                      
-                      final labels = snapshot.data as List<String>;
-                      return Column(
+      backgroundColor: colors['background'],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildInfoTile(labels[0], _user!.name),
-                          _buildInfoTile(labels[1], _user!.email),
-                          _buildInfoTile(labels[2], _user!.points.toString()),
-                          _buildInfoTile(labels[3], _user!.streaks.toString()),
-                          _buildInfoTile(labels[4], _user!.userType.name),
-                          _buildInfoTile(labels[5], 
-                            _user!.birthDate.toLocal().toString().split(' ')[0]),
+                          Text(user.name, style: textStyles['headingLarge']),
+                          Text(
+                            user.rankType?.toShortString() ?? 'No Rank',
+                            style: textStyles['bodyRegular'],
+                          ),
                         ],
-                      );
-                    },
+                      ),
+                    ),
+                    CircleAvatar(
+                      radius: 35,
+                      backgroundImage: user.imageUrl != null
+                          ? NetworkImage(user.imageUrl!)
+                          : null,
+                      child: user.imageUrl == null
+                          ? const Icon(Icons.person, size: 35)
+                          : null,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Stats
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colors['box'],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _statItem(Icons.rocket_launch, 'Points', user.points, textStyles),
+                      _statItem(Icons.account_balance, 'Landmarks', landmarksCount, textStyles),
+                      _statItem(Icons.local_fire_department, 'Streak', user.streaks, textStyles),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 20),
+
+                // What's nearby
+                _actionCard(
+                  icon: Icons.signpost,
+                  text: "See what's nearby",
+                  buttonText: "Let's see",
+                  onPressed: () {
+                    // TODO: handle nearby map navigation
+                  },
+                  colors: colors,
+                  textStyles: textStyles,
+                ),
+                const SizedBox(height: 20),
+
+                // Quiz card
+                SizedBox(
+                  width: double.infinity,
+                  height: 400,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colors['box'],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Text(
+                            "It looks like it is time\nfor your daily quiz!",
+                            style: textStyles['headingLarge'],
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Align(
+                          alignment: Alignment.center,
+                          child: Image.asset(
+                            'assets/quiz.webp',
+                            height: 200,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const Spacer(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: colors['button'],
+                                foregroundColor: Colors.white,
+                              ),
+                              onPressed: () {
+                                // TODO: start quiz
+                              },
+                              child: const Text("Let's start"),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildInfoTile(String label, String value) {
-    // Get color based on label category
-    Color? textColor;
-    if (label.contains('Име') || label.contains('Имейл')) {
-      textColor = Colors.blue[700]; // Personal info color
-    } else if (label.contains('Точки') || label.contains('Поредица')) {
-      textColor = Colors.green[700]; // Achievement info color
-    } else if (label.contains('Тип')) {
-      textColor = Colors.purple[700]; // Role info color
-    } else {
-      textColor = Colors.orange[700]; // Other info color
-    }
+  Widget _statItem(IconData icon, String label, int value, Map<String, TextStyle> textStyles) {
+    return Column(
+      children: [
+        Icon(icon, size: 28),
+        const SizedBox(height: 4),
+        Text(label, style: textStyles['bodyRegular']),
+        Text(value.toString(), style: textStyles['headingLarge']),
+      ],
+    );
+  }
 
+  Widget _actionCard({
+    required IconData icon,
+    required String text,
+    required String buttonText,
+    required VoidCallback onPressed,
+    required Map<String, Color> colors,
+    required Map<String, TextStyle> textStyles,
+  }) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _prefsManager.currentColors['box'],
-        borderRadius: BorderRadius.circular(8),
+        color: colors['box'],
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: (_prefsManager.currentStyles['bodyRegular'] ?? 
-              const TextStyle(fontSize: 16)).copyWith(color: textColor),
-          ),
-          Text(
-            value,
-            style: (_prefsManager.currentStyles['bodyRegular'] ?? 
-              const TextStyle(fontSize: 16)).copyWith(color: textColor),
+          Icon(icon, size: 40),
+          const SizedBox(width: 16),
+          Expanded(child: Text(text, style: textStyles['bodyRegular'])),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors['button'],
+              foregroundColor: Colors.white,
+            ),
+            onPressed: onPressed,
+            child: Text(buttonText),
           ),
         ],
       ),
