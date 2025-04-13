@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import '../models/UserModel.dart';
+import '../models/user_model.dart';
 import '../models/enums/user_type.dart';
 import '../services/user_service.dart';
 
@@ -36,7 +36,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       streaks: 0,
       rankType: null,
       // <- ще изисква промяна в модела
-      userType: UserType.regular,
+      userType: UserType.user,
       birthDate: _birthDate!,
       isDailyQuizDone: false,
     );

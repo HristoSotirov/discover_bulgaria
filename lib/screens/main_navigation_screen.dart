@@ -1,0 +1,66 @@
+import 'package:flutter/material.dart';
+import '../models/user_model.dart';
+import 'map_screen.dart';
+import 'ranking_screen.dart';
+import 'user_screen.dart';
+import '../config/app_colors.dart';
+import '../config/app_text_styles.dart';
+
+class MainNavigationScreen extends StatefulWidget {
+  final UserModel user;
+  final int landmarksCount;
+
+  const MainNavigationScreen({
+    super.key,
+    required this.user,
+    required this.landmarksCount,
+  });
+
+  @override
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+}
+
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = AppColors.getColors(isDark);
+    final textStyles = AppTextStyles.getStyles(isDark);
+
+    final screens = [
+      UserProfileScreen(
+        user: widget.user,
+        landmarksCount: widget.landmarksCount,
+      ),
+      const MapScreen(),
+      RankingScreen(
+        currentUser: widget.user,
+      ),
+    ];
+
+    return Scaffold(
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: screens,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: colors['button'],
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.black.withOpacity(0.5),
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.house), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
+          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Ranking'),
+        ],
+      ),
+    );
+  }
+}

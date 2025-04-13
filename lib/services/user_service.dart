@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/UserModel.dart'; // поправен import (малка буква)
+import '../models/user_model.dart'; // поправен import (малка буква)
 
 class UserService {
   final SupabaseClient _client = Supabase.instance.client;
