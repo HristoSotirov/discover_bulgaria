@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:discover_bulgaria/config/app_colors.dart';
-import 'package:discover_bulgaria/config/app_text_styles.dart';
-import 'package:discover_bulgaria/config/free_translation_service.dart';
+import 'package:discover_bulgaria/config/preferences_manager.dart';
 import 'login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -11,72 +8,34 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  String _selectedLanguage = 'bg';
-  bool _isDarkMode = false;
-  final Map<String, String> _translationCache = {};
-
-  final Map<String, Map<String, String>> _languages = {
-    'bg': {'name': 'Български', 'flag': '🇧🇬'},
-    'en': {'name': 'English', 'flag': '🇬🇧'},
-  };
-
-  Map<String, Color> get _currentColors => AppColors.getColors(_isDarkMode);
-  Map<String, TextStyle> get _currentStyles => AppTextStyles.getStyles(_isDarkMode);
-
-  Future<String> _translate(String text) async {
-    if (_selectedLanguage == 'bg') return text;
-    if (_translationCache.containsKey(text)) return _translationCache[text]!;
-
-    try {
-      final translated = await FreeTranslationService.translate(text, _selectedLanguage);
-      _translationCache[text] = translated;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('translated_${_selectedLanguage}_$text', translated);
-      return translated;
-    } catch (e) {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getString('translated_${_selectedLanguage}_$text') ?? text;
-    }
-  }
-
-  Future<void> _savePreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('language', _selectedLanguage);
-    await prefs.setBool('darkMode', _isDarkMode);
-  }
+  final _prefsManager = PreferencesManager();
 
   @override
   void initState() {
     super.initState();
-    _loadCachedTranslations();
-  }
-
-  Future<void> _loadCachedTranslations() async {
-    final prefs = await SharedPreferences.getInstance();
-    for (var text in ['Добре дошли!', 'Изберете език', 'Изберете режим', 'Продължи', 'Нощен режим', 'Дневен режим']) {
-      for (var lang in _languages.keys) {
-        final cached = prefs.getString('translated_${lang}_$text');
-        if (cached != null) _translationCache[text] = cached;
-      }
-    }
+    // Remove the listener since it's not needed for translations
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _currentColors['background'],
+      backgroundColor: _prefsManager.currentColors['background'],
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: FutureBuilder(
           future: Future.wait([
-            _translate('Добре дошли!'),
-            _translate('Изберете език'),
-            _translate('Изберете режим'),
-            _translate('Продължи'),
-            _translate(_isDarkMode ? 'Нощен режим' : 'Дневен режим'),
+            _prefsManager.translate('Добре дошли!'),
+            _prefsManager.translate('Изберете език'),
+            _prefsManager.translate('Изберете режим'),
+            _prefsManager.translate('Продължи'),
+            _prefsManager.translate(_prefsManager.isDarkMode ? 'Тъмен режим' : 'Светъл режим'),
           ]),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) return _buildLoading();
+            if (!snapshot.hasData) return Center(
+              child: CircularProgressIndicator(
+                color: _prefsManager.currentColors['button']
+              ),
+            );
 
             final data = snapshot.data as List<String>;
             return _buildContent(data[0], data[1], data[2], data[3], data[4]);
@@ -86,15 +45,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildLoading() => Center(
-    child: CircularProgressIndicator(color: _currentColors['background']),
-  );
-
-  Widget _buildContent(String welcome, String chooseLang, String chooseMode, String continueText, String modeText) {
+  Widget _buildContent(String welcome, String chooseLang, String chooseMode, 
+                      String continueText, String modeText) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(welcome, style: _currentStyles['headingLarge']),
+        Text(welcome, style: _prefsManager.currentStyles['headingLarge']),
         SizedBox(height: 40),
         _buildLanguageSelector(chooseLang),
         SizedBox(height: 20),
@@ -102,37 +58,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         SizedBox(height: 40),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: _currentColors['button'],
-            foregroundColor: _currentColors['text'],
+            backgroundColor: _prefsManager.currentColors['button'],
+            foregroundColor: _prefsManager.currentColors['background'],
             padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
-          onPressed: _navigateToLoginScreen,
+          onPressed: () async {
+            await _prefsManager.setOnboardingDone();
+            if (!mounted) return;
+            Navigator.pushReplacement(
+              context, 
+              MaterialPageRoute(builder: (_) => LoginScreen())
+            );
+          },
           child: Text(continueText),
         ),
       ],
     );
   }
 
-  void _navigateToLoginScreen() {
-    _savePreferences();
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreen()));
-  }
-
   Widget _buildLanguageSelector(String title) => Column(
     children: [
-      Text(title, style: _currentStyles['bodyRegular']),
+      Text(title, style: _prefsManager.currentStyles['bodyRegular']),
       SizedBox(height: 15),
       Wrap(
         spacing: 10,
         runSpacing: 10,
         alignment: WrapAlignment.center,
-        children: _languages.entries.map((e) => _LanguageButton(
+        children: _prefsManager.languages.entries.map((e) => _LanguageButton(
           label: '${e.value['flag']} ${e.value['name']}',
           value: e.key,
-          selected: _selectedLanguage == e.key,
-          onSelected: (v) => setState(() => _selectedLanguage = v),
-          colors: _currentColors,
+          selected: _prefsManager.selectedLanguage == e.key,
+          onSelected: (v) {
+            setState(() {
+              _prefsManager.setLanguage(v);
+            });
+          },
+          colors: _prefsManager.currentColors,
         )).toList(),
       ),
     ],
@@ -140,18 +102,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildThemeSelector(String title, String modeText) => Column(
     children: [
-      Text(title, style: _currentStyles['bodyRegular']),
+      Text(title, style: _prefsManager.currentStyles['bodyRegular']),
       SwitchListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 60, vertical: 0),
-        dense: true,
-        visualDensity: VisualDensity.compact,
-        title: Text(modeText, style: _currentStyles['bodyRegular']),
-        value: _isDarkMode,
-        activeColor: _currentColors['background'],
-        activeTrackColor: _currentColors['button']?.withOpacity(0.3),
-        inactiveThumbColor: _currentColors['button'],
-        inactiveTrackColor: _currentColors['background']?.withOpacity(0.5),
-        onChanged: (v) => setState(() => _isDarkMode = v),
+        contentPadding: EdgeInsets.symmetric(horizontal: 60),
+        title: Text(modeText, style: _prefsManager.currentStyles['bodyRegular']),
+        value: _prefsManager.isDarkMode,
+        activeColor: _prefsManager.currentColors['button'],
+        activeTrackColor: _prefsManager.currentColors['accent']?.withOpacity(0.3),
+        inactiveThumbColor: _prefsManager.currentColors['button'],
+        inactiveTrackColor: _prefsManager.currentColors['background']?.withOpacity(0.5),
+        onChanged: (v) {
+          setState(() {
+            _prefsManager.setDarkMode(v);
+          });
+        },
       ),
     ],
   );
@@ -174,16 +138,22 @@ class _LanguageButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = colors['primary'] ?? Colors.blue;
+    final primaryColor = colors['button'] ?? Colors.blue;
+    final backgroundColor = colors['background'] ?? Colors.white;
     final textColor = colors['text'] ?? Colors.black;
-    final cardColor = colors['background'] ?? Colors.white;
 
     return ChoiceChip(
       label: Text(label),
       selected: selected,
-      selectedColor: primaryColor.withOpacity(0.3),
-      labelStyle: TextStyle(color: selected ? primaryColor : textColor),
-      backgroundColor: cardColor,
+      selectedColor: primaryColor,
+      backgroundColor: backgroundColor,
+      labelStyle: TextStyle(
+        color: selected ? backgroundColor : textColor,
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      side: BorderSide(
+        color: selected ? primaryColor : colors['box'] ?? Colors.grey,
+      ),
       onSelected: (_) => onSelected(value),
     );
   }

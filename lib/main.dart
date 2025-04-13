@@ -1,22 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'config/preferences_manager.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/user_screen.dart';
+import 'screens/admin_screen.dart';
+import 'services/user_service.dart';
+import 'models/enums/user_type.dart';
 import 'supabase_config.dart';
-import 'package:discover_bulgaria/screens/onboarding_screen.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Supabase client first
   await SupabaseConfig.initialize();
-  runApp(const MyApp());
+  
+  // Initialize preferences manager and wait for it to complete
+  final prefsManager = PreferencesManager();
+  await prefsManager.initializePreferences();
+
+  runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final _prefsManager = PreferencesManager();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Supabase Demo',
-      home: OnboardingScreen(),
+      home: FutureBuilder<Widget>(
+        future: _determineInitialScreen(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              backgroundColor: _prefsManager.currentColors['background'],
+              body: Center(
+                child: CircularProgressIndicator(
+                  color: _prefsManager.currentColors['button'],
+                ),
+              ),
+            );
+          }
+          
+          if (snapshot.hasError) {
+            print('Error loading initial screen: ${snapshot.error}');
+            return OnboardingScreen();
+          }
+          
+          return snapshot.data ?? OnboardingScreen();
+        },
+      ),
     );
+  }
+
+  Future<Widget> _determineInitialScreen() async {
+    try {
+      await _prefsManager.initializePreferences();
+
+      if (!_prefsManager.isOnboardingDone) {
+        return OnboardingScreen();
+      }
+
+      final userId = _prefsManager.userId;
+      if (userId != null) {
+        try {
+          final user = await UserService().getUserById(userId);
+          if (user != null) {
+            // Return different screens based on user type
+            if (user.userType == UserType.admin) {
+              return AdminScreen(
+                userId: userId,
+                initialUserData: user,
+              );
+            } else {
+              return UserScreen(
+                userId: userId,
+                initialUserData: user,
+              );
+            }
+          }
+        } catch (e) {
+          print('Error fetching user: $e');
+          await _prefsManager.clearUserSession();
+        }
+      }
+    } catch (e) {
+      print('Error determining initial screen: $e');
+    }
+
+    return OnboardingScreen();
   }
 }
