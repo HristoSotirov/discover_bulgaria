@@ -5,6 +5,8 @@ import 'package:discover_bulgaria/services/user_service.dart';
 import 'package:discover_bulgaria/screens/user_screen.dart';
 import 'package:discover_bulgaria/screens/admin_screen.dart';
 import 'package:discover_bulgaria/models/enums/user_type.dart';
+import 'package:discover_bulgaria/screens/main_navigation_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -35,14 +37,14 @@ class _LoginScreenState extends State<LoginScreen> {
         await _prefsManager.saveUserSession(user.id!);
         
         if (!mounted) return;
-        
-        // Route to appropriate screen based on user type
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => user.userType == UserType.admin
                 ? AdminScreen(userId: user.id!, initialUserData: user)
-                : UserScreen(userId: user.id!, initialUserData: user),
+                : MainNavigationScreen(user: user),
+
           ),
         );
       }

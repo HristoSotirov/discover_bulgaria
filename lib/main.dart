@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/preferences_manager.dart';
 import 'screens/onboarding_screen.dart';
-import 'screens/user_screen.dart';
 import 'screens/admin_screen.dart';
 import 'services/user_service.dart';
 import 'models/enums/user_type.dart';
@@ -13,12 +11,16 @@ import 'screens/main_navigation_screen.dart'; //
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Supabase client first
+
   await SupabaseConfig.initialize();
 
-  // Initialize preferences manager and wait for it to complete
+
   final prefsManager = PreferencesManager();
   await prefsManager.initializePreferences();
+
+  await PreferencesManager().clearUserSession(); // ❗️Изчиства сесията при всяко стартиране
+  // добавих го да тестваме само, като го махнем сесията се пази и вс работи
+
 
   runApp(MyApp());
 }
@@ -60,44 +62,6 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  // Future<Widget> _determineInitialScreen() async {
-  //   try {
-  //     await _prefsManager.initializePreferences();
-  //
-  //     if (!_prefsManager.isOnboardingDone) {
-  //       return OnboardingScreen();
-  //     }
-  //
-  //     final userId = _prefsManager.userId;
-  //     if (userId != null) {
-  //       try {
-  //         final user = await UserService().getUserById(userId);
-  //         if (user != null) {
-  //           // Return different screens based on user type
-  //           if (user.userType == UserType.admin) {
-  //             return AdminScreen(
-  //               userId: userId,
-  //               initialUserData: user,
-  //             );
-  //           } else {
-  //             return UserScreen(
-  //               userId: userId,
-  //               initialUserData: user,
-  //             );
-  //           }
-  //         }
-  //       } catch (e) {
-  //         print('Error fetching user: $e');
-  //         await _prefsManager.clearUserSession();
-  //       }
-  //     }
-  //   } catch (e) {
-  //     print('Error determining initial screen: $e');
-  //   }
-  //
-  //   return OnboardingScreen();
-  // }
-
   Future<Widget> _determineInitialScreen() async {
     try {
       await _prefsManager.initializePreferences();
@@ -117,7 +81,6 @@ class _MyAppState extends State<MyApp> {
                 initialUserData: user,
               );
             } else {
-              // ✅ Показваме потребителския интерфейс с долна навигация
               return MainNavigationScreen(user: user);
             }
           }
@@ -132,6 +95,4 @@ class _MyAppState extends State<MyApp> {
 
     return OnboardingScreen();
   }
-
-
 }
