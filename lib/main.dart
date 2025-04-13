@@ -8,12 +8,14 @@ import 'services/user_service.dart';
 import 'models/enums/user_type.dart';
 import 'supabase_config.dart';
 
+import 'screens/main_navigation_screen.dart'; //
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Supabase client first
   await SupabaseConfig.initialize();
-  
+
   // Initialize preferences manager and wait for it to complete
   final prefsManager = PreferencesManager();
   await prefsManager.initializePreferences();
@@ -46,17 +48,55 @@ class _MyAppState extends State<MyApp> {
               ),
             );
           }
-          
+
           if (snapshot.hasError) {
             print('Error loading initial screen: ${snapshot.error}');
             return OnboardingScreen();
           }
-          
+
           return snapshot.data ?? OnboardingScreen();
         },
       ),
     );
   }
+
+  // Future<Widget> _determineInitialScreen() async {
+  //   try {
+  //     await _prefsManager.initializePreferences();
+  //
+  //     if (!_prefsManager.isOnboardingDone) {
+  //       return OnboardingScreen();
+  //     }
+  //
+  //     final userId = _prefsManager.userId;
+  //     if (userId != null) {
+  //       try {
+  //         final user = await UserService().getUserById(userId);
+  //         if (user != null) {
+  //           // Return different screens based on user type
+  //           if (user.userType == UserType.admin) {
+  //             return AdminScreen(
+  //               userId: userId,
+  //               initialUserData: user,
+  //             );
+  //           } else {
+  //             return UserScreen(
+  //               userId: userId,
+  //               initialUserData: user,
+  //             );
+  //           }
+  //         }
+  //       } catch (e) {
+  //         print('Error fetching user: $e');
+  //         await _prefsManager.clearUserSession();
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Error determining initial screen: $e');
+  //   }
+  //
+  //   return OnboardingScreen();
+  // }
 
   Future<Widget> _determineInitialScreen() async {
     try {
@@ -71,17 +111,14 @@ class _MyAppState extends State<MyApp> {
         try {
           final user = await UserService().getUserById(userId);
           if (user != null) {
-            // Return different screens based on user type
             if (user.userType == UserType.admin) {
               return AdminScreen(
                 userId: userId,
                 initialUserData: user,
               );
             } else {
-              return UserScreen(
-                userId: userId,
-                initialUserData: user,
-              );
+              // ✅ Показваме потребителския интерфейс с долна навигация
+              return MainNavigationScreen(user: user);
             }
           }
         } catch (e) {
@@ -95,4 +132,6 @@ class _MyAppState extends State<MyApp> {
 
     return OnboardingScreen();
   }
+
+
 }

@@ -30,22 +30,42 @@ class UserModel {
     required this.isDailyQuizDone,
   });
 
+  // factory UserModel.fromJson(Map<String, dynamic> json) {
+  //   return UserModel(
+  //     id: json['id'], // може да дойде от Supabase
+  //     createdAt: DateTime.parse(json['created_at']),
+  //     imageUrl: json['image_url'],
+  //     name: json['name'],
+  //     email: json['email'],
+  //     password: json['password'],
+  //     points: json['points'],
+  //     streaks: json['streaks'],
+  //     rankType: json['rank_type'] != null ? RankType.fromString(json['rank_type']) : null,
+  //     userType: UserType.fromString(json['user_type']),
+  //     birthDate: DateTime.parse(json['birth_date']),
+  //     isDailyQuizDone: json['is_daily_quiz_done'],
+  //   );
+  // }
+
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    print('Received JSON: $json'); // 👈 ВАЖНО
+
     return UserModel(
-      id: json['id'], // може да дойде от Supabase
+      id: json['id'],
       createdAt: DateTime.parse(json['created_at']),
       imageUrl: json['image_url'],
       name: json['name'],
       email: json['email'],
       password: json['password'],
-      points: json['points'],
-      streaks: json['streaks'],
+      points: json['points'] ?? 0,
+      streaks: json['streaks'] ?? 0,
       rankType: json['rank_type'] != null ? RankType.fromString(json['rank_type']) : null,
-      userType: UserType.fromString(json['user_type']),
+      userType: json['user_type'] != null ? UserType.fromString(json['user_type']) : UserType.user,
       birthDate: DateTime.parse(json['birth_date']),
-      isDailyQuizDone: json['is_daily_quiz_done'],
+      isDailyQuizDone: json['is_daily_quiz_done'] ?? false,
     );
   }
+
 
   Map<String, dynamic> toJson() {
     final map = {

@@ -6,7 +6,7 @@ enum UserType {
     switch (value.toLowerCase()) {
       case 'admin':
         return UserType.admin;
-      case 'regular':
+      case 'user':
         return UserType.user;
       default:
         throw Exception('Unknown UserType: $value');
