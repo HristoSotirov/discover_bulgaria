@@ -15,6 +15,12 @@ class AppTextStyles {
       height: 1.5,
       color: AppColors.lightTheme['text'],
     ),
+    'heading': TextStyle(
+      fontFamily: 'Roboto',
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: AppColors.lightTheme['text'],
+    ),
   };
 
   static Map<String, TextStyle> darkTheme = {
@@ -29,6 +35,12 @@ class AppTextStyles {
       fontSize: 16,
       height: 1.5,
       color: AppColors.darkTheme['text'],
+    ),
+    'heading': TextStyle(
+      fontFamily: 'Roboto',
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: AppColors.lightTheme['text'],
     ),
   };
 

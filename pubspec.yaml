@@ -34,4 +34,5 @@ flutter:
 
   assets:
     - assets/quiz.webp
+    - assets/quiz_done.png
 
