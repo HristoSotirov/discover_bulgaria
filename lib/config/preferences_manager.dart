@@ -21,8 +21,16 @@ class PreferencesManager extends ChangeNotifier {
   bool _isOnboardingDone = false;
 
   final Map<String, Map<String, String>> languages = {
-    'bg': {'name': 'Български', 'flag': '🇧🇬'},
-    'en': {'name': 'English', 'flag': '🇬🇧'},
+    'bg': {
+      'name': 'Български',
+      'symbol': 'БГ',
+      'flag': '🇧🇬',
+    },
+    'en': {
+      'name': 'English',
+      'symbol': 'EN',
+      'flag': '🇺🇸',
+    },
   };
 
   bool get isDarkMode => _isDarkMode;

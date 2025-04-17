@@ -23,14 +23,14 @@ class LandmarkModel {
       imageUrl: json['image_url'],
       name: json['name'],
       description: json['description'],
-      latitude: json['latitude'],
-      longitude: json['longitude'],
-      questions: json['questions'] ?? [],
+      latitude: json['latitude']?.toDouble() ?? 0.0,
+      longitude: json['longitude']?.toDouble() ?? 0.0,
+      questions: List<String>.from(json['questions'] ?? []),
     );
   }
+
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'image_url': imageUrl,
       'name': name,
       'description': description,
