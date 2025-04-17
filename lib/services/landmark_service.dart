@@ -49,6 +49,10 @@ class LandmarkService {
 
   /// Изтриване на забележителност
   Future<void> deleteLandmark(String id) async {
+    if (id == null) {
+      throw Exception('Cannot delete landmark without ID');
+    }
+
     try {
       await _client.from(_table).delete().eq('id', id);
     } catch (error) {
@@ -56,3 +60,4 @@ class LandmarkService {
     }
   }
 }
+
