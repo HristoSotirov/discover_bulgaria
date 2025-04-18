@@ -88,4 +88,35 @@ class UserModel {
 
     return map;
   }
+
+  UserModel copyWith({
+    String? id,
+    DateTime? createdAt,
+    String? imageUrl,
+    String? name,
+    String? email,
+    String? password,
+    int? points,
+    int? streaks,
+    RankType? rankType,
+    UserType? userType,
+    DateTime? birthDate,
+    bool? isDailyQuizDone,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      imageUrl: imageUrl ?? this.imageUrl,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      points: points ?? this.points,
+      streaks: streaks ?? this.streaks,
+      rankType: rankType ?? this.rankType,
+      userType: userType ?? this.userType,
+      birthDate: birthDate ?? this.birthDate,
+      isDailyQuizDone: isDailyQuizDone ?? this.isDailyQuizDone,
+    );
+  }
 }
+
