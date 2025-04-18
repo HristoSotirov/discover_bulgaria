@@ -10,13 +10,15 @@ import '../screens/landmark_details_screen.dart';
 
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  final String userId;
+  const MapScreen({super.key, required this.userId});
 
   @override
   State<MapScreen> createState() => MapScreenState();
 }
 
-class MapScreenState extends State<MapScreen> {
+class _MapScreenState extends State<MapScreen> {
+  DateTime? visitDate;
   GoogleMapController? mapController;
   LatLng? currentPosition;
   final Set<Marker> _markers = {};
@@ -58,21 +60,33 @@ class MapScreenState extends State<MapScreen> {
     try {
       final landmarks = await LandmarkService().getAllLandmarks();
 
+      // Вземи текущия userId от сесията или PreferencesManager
+      final visitedLandmarkIds = await LandmarkService().getVisitedLandmarkIds(widget.userId);
+
+
       setState(() {
         for (final landmark in landmarks) {
+          final isVisited = visitedLandmarkIds.contains(landmark.id);
+
           _markers.add(
             Marker(
               markerId: MarkerId(landmark.id ?? landmark.name),
               position: LatLng(landmark.latitude, landmark.longitude),
-              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                isVisited ? BitmapDescriptor.hueGreen : BitmapDescriptor.hueAzure,
+              ),
               consumeTapEvents: true,
-              onTap: () {
+              onTap: () async {
+                final date = await LandmarkService().getVisitDate(widget.userId, landmark.id!);
+
                 setState(() {
                   selectedLandmark = landmark;
+                  visitDate = date;
                   showPopup = true;
                   expanded = false;
                 });
               },
+
             ),
           );
         }
@@ -130,29 +144,47 @@ class MapScreenState extends State<MapScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          selectedLandmark!.name,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: colors['text'],
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              selectedLandmark!.name,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: colors['text'],
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                showPopup = false;
+                                expanded = false;
+                              });
+                            },
+                            icon: Icon(Icons.close, color: colors['text']),
+                          ),
+                        ],
+                      ),
+                      if (visitDate != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 1.0),
+                          child: Text(
+                            "Посетено на ${visitDate!.day.toString().padLeft(2, '0')}.${visitDate!.month.toString().padLeft(2, '0')}.${visitDate!.year}",
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic,
+                            ),
                           ),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            showPopup = false;
-                            expanded = false;
-                          });
-                        },
-                        icon: Icon(Icons.close, color: colors['text']),
-                      )
                     ],
                   ),
+
                   if (expanded) ...[
                     const SizedBox(height: 8),
                     Text(
@@ -178,9 +210,13 @@ class MapScreenState extends State<MapScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => LandmarkDetailsScreen(landmark: selectedLandmark!),
+                              builder: (_) => LandmarkDetailsScreen(
+                                landmark: selectedLandmark!,
+                                userId: widget.userId, // <-- ако си в MapScreen и имаш userId в конструктора
+                              ),
                             ),
                           );
+
                         },
 
                         child: Text(expanded ? "Hide info" : "See more"),

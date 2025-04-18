@@ -156,7 +156,10 @@ class UserScreenState extends State<UserScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => NearbyLandmarksScreen(allLandmarks: allLandmarks),
+                        builder: (context) => NearbyLandmarksScreen(
+                          allLandmarks: allLandmarks,
+                          userId: widget.userId, // ако си в StatefulWidget и имаш `userId`
+                        ),
                       ),
                     );
                   },

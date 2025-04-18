@@ -8,23 +8,25 @@ import '../config/app_text_styles.dart';
 import 'landmark_details_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-
-
 class NearbyLandmarksScreen extends StatelessWidget {
   final List<LandmarkModel> allLandmarks;
+  final String userId;
 
-  const NearbyLandmarksScreen({super.key, required this.allLandmarks});
+  const NearbyLandmarksScreen({
+    super.key,
+    required this.allLandmarks,
+    required this.userId,
+  });
 
   double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     const earthRadius = 6371000; // in meters
     final dLat = _degreesToRadians(lat2 - lat1);
     final dLon = _degreesToRadians(lon2 - lon1);
 
-    final a =
-        (sin(dLat / 2) * sin(dLat / 2)) +
-            cos(_degreesToRadians(lat1)) *
-                cos(_degreesToRadians(lat2)) *
-                (sin(dLon / 2) * sin(dLon / 2));
+    final a = (sin(dLat / 2) * sin(dLat / 2)) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            (sin(dLon / 2) * sin(dLon / 2));
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return earthRadius * c;
   }
@@ -59,7 +61,7 @@ class NearbyLandmarksScreen extends StatelessWidget {
               landmark.latitude,
               landmark.longitude,
             );
-            return distance <= 6000; // 3km
+            return distance <= 6000; // 6km
           }).toList();
 
           if (nearbyLandmarks.isEmpty) {
@@ -117,7 +119,10 @@ class NearbyLandmarksScreen extends StatelessWidget {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => LandmarkDetailsScreen(landmark: landmark),
+                                              builder: (context) => LandmarkDetailsScreen(
+                                                landmark: landmark,
+                                                userId: userId,
+                                              ),
                                             ),
                                           );
                                         },
@@ -127,7 +132,6 @@ class NearbyLandmarksScreen extends StatelessWidget {
                                         ),
                                         child: const Text('See more'),
                                       ),
-
                                       const SizedBox(width: 8),
                                       ElevatedButton(
                                         onPressed: () {
@@ -142,7 +146,6 @@ class NearbyLandmarksScreen extends StatelessWidget {
                                         ),
                                         child: const Text('Navigate'),
                                       ),
-
                                     ],
                                   ),
                                 ],

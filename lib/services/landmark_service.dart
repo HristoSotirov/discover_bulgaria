@@ -59,5 +59,28 @@ class LandmarkService {
       throw Exception('Failed to delete landmark: $error');
     }
   }
+
+  Future<List<String>> getVisitedLandmarkIds(String userId) async {
+    final response = await _client
+        .from('visited_landmarks')
+        .select('landmark_id')
+        .eq('user_id', userId);
+
+    return (response as List).map((e) => e['landmark_id'] as String).toList();
+  }
+  Future<DateTime?> getVisitDate(String userId, String landmarkId) async {
+    final response = await _client
+        .from('visited_landmarks')
+        .select('date') // assuming колоната с дата се казва така
+        .eq('user_id', userId)
+        .eq('landmark_id', landmarkId)
+        .maybeSingle();
+
+    if (response == null || response['date'] == null) return null;
+
+    return DateTime.parse(response['date']);
+  }
+
+
 }
 
