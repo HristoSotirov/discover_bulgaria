@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
@@ -6,11 +5,9 @@ import '../models/user_model.dart';
 import '../services/user_service.dart';
 import '../screens/daily_quiz_screen.dart';
 import '../screens/nearby_landmarks_screen.dart';
-
 import '../models/landmark_model.dart';
 import '../services/landmark_service.dart';
-
-
+import '../screens/profile_edit_screen.dart';
 
 class UserScreen extends StatefulWidget {
   final String userId;
@@ -23,10 +20,10 @@ class UserScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<UserScreen> createState() => _UserScreenState();
+  State<UserScreen> createState() => UserScreenState();
 }
 
-class _UserScreenState extends State<UserScreen> {
+class UserScreenState extends State<UserScreen> {
   late UserModel user;
   int landmarksCount = 0;
   bool isLoading = true;
@@ -60,6 +57,10 @@ class _UserScreenState extends State<UserScreen> {
       print("Error loading user screen: $e");
       setState(() => isLoading = false);
     }
+  }
+
+  void refresh() {
+    _loadUserAndLandmarks();
   }
 
   @override
@@ -101,14 +102,28 @@ class _UserScreenState extends State<UserScreen> {
                         ],
                       ),
                     ),
-                    CircleAvatar(
-                      radius: 35,
-                      backgroundImage: user.imageUrl != null
-                          ? NetworkImage(user.imageUrl!)
-                          : null,
-                      child: user.imageUrl == null
-                          ? const Icon(Icons.person, size: 35)
-                          : null,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProfileEditScreen(user: user),
+                          ),
+                        ).then((value) {
+                          if (value == true) {
+                            refresh();
+                          }
+                        });
+                      },
+                      child: CircleAvatar(
+                        radius: 35,
+                        backgroundImage: user.imageUrl != null
+                            ? NetworkImage(user.imageUrl!)
+                            : null,
+                        child: user.imageUrl == null
+                            ? const Icon(Icons.person, size: 35)
+                            : null,
+                      ),
                     ),
                   ],
                 ),
@@ -171,9 +186,9 @@ class _UserScreenState extends State<UserScreen> {
                           child: Text(
                             user.isDailyQuizDone
                                 ? "You've already completed your quiz for today!"
-                                : "It looks like it is time\nfor your daily quiz!",
+                                : "It looks like it is time for your daily quiz!",
                             style: textStyles['headingLarge'],
-                            textAlign: TextAlign.center,
+                            textAlign: TextAlign.left,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -197,13 +212,18 @@ class _UserScreenState extends State<UserScreen> {
                                   backgroundColor: colors['button'],
                                   foregroundColor: Colors.white,
                                 ),
-                                onPressed: () {
-                                  Navigator.push(
+                                onPressed: () async {
+                                  final result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const DailyQuizScreen(),
+                                      builder: (context) => DailyQuizScreen(currentUser: user),
                                     ),
                                   );
+                                  
+                                  // Refresh the screen if quiz was completed
+                                  if (result == true) {
+                                    await _loadUserAndLandmarks();
+                                  }
                                 },
                                 child: const Text("Let's start"),
                               ),
@@ -264,3 +284,4 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 }
+

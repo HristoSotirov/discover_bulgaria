@@ -20,6 +20,23 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
+  final GlobalKey<UserScreenState> _userScreenKey = GlobalKey();
+  final GlobalKey<MapScreenState> _mapScreenKey = GlobalKey();
+  final GlobalKey<RankingScreenState> _rankingScreenKey = GlobalKey();
+
+  void _refreshCurrentScreen() {
+    switch (_selectedIndex) {
+      case 0:
+        _userScreenKey.currentState?.refresh();
+        break;
+      case 1:
+        _mapScreenKey.currentState?.refresh();
+        break;
+      case 2:
+        _rankingScreenKey.currentState?.refresh();
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +46,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     final screens = [
       UserScreen(
+        key: _userScreenKey,
         userId: widget.user.id!,
         initialUserData: widget.user,
       ),
+
     MapScreen(userId: widget.user.id!),
+
       RankingScreen(
+        key: _rankingScreenKey,
         currentUser: widget.user,
       ),
     ];
@@ -52,6 +73,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           setState(() {
             _selectedIndex = index;
           });
+          _refreshCurrentScreen();
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.house), label: 'Home'),

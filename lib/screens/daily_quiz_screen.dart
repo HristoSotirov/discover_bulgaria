@@ -1,9 +1,114 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import '../models/question_model.dart';
+import '../models/user_model.dart';
+import '../services/question_service.dart';
+import '../services/user_service.dart';
 
-class DailyQuizScreen extends StatelessWidget {
-  const DailyQuizScreen({Key? key}) : super(key: key);
+class DailyQuizScreen extends StatefulWidget {
+  final UserModel currentUser;
+
+  const DailyQuizScreen({Key? key, required this.currentUser}) : super(key: key);
+
+  @override
+  _DailyQuizScreenState createState() => _DailyQuizScreenState();
+}
+
+class _DailyQuizScreenState extends State<DailyQuizScreen> {
+  late final QuestionService _questionService;
+  late final UserService _userService;
+  late List<QuestionModel> _questions = [];
+  late List<QuestionModel> _quizQuestions = [];
+  int _currentQuestionIndex = 0;
+  int _score = 0;
+  String? _selectedAnswer;
+  bool _isAnswerSubmitted = false;
+  bool _isQuizCompleted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _questionService = QuestionService();
+    _userService = UserService();
+    _initializeQuiz();
+  }
+
+  Future<void> _initializeQuiz() async {
+    try {
+      // Fetch all questions from database
+      _questions = await _questionService.getAllQuestions();
+
+      // Shuffle and take first 5 questions
+      _questions.shuffle();
+      _quizQuestions = _questions.take(5).toList();
+
+      setState(() {});
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading questions: $e')),
+      );
+    }
+  }
+
+  void _submitAnswer(String answer) {
+    if (_isAnswerSubmitted) return;
+
+    setState(() {
+      _selectedAnswer = answer;
+      _isAnswerSubmitted = true;
+
+      // Check if answer is correct
+      if (answer == _quizQuestions[_currentQuestionIndex].correctAnswer) {
+        _score++;
+      }
+    });
+  }
+
+  void _nextQuestion() {
+    if (_currentQuestionIndex < _quizQuestions.length - 1) {
+      setState(() {
+        _currentQuestionIndex++;
+        _selectedAnswer = null;
+        _isAnswerSubmitted = false;
+      });
+    } else {
+      _completeQuiz();
+    }
+  }
+
+  Future<void> _completeQuiz() async {
+    setState(() {
+      _isQuizCompleted = true;
+    });
+
+    // Update user points
+    final updatedUser = widget.currentUser.copyWith(
+      points: widget.currentUser.points + _score,
+      isDailyQuizDone: true,
+    );
+
+    try {
+      await _userService.updateUser(updatedUser);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating user points: $e')),
+        );
+      }
+    }
+  }
+
+  void _restartQuiz() {
+    setState(() {
+      _quizQuestions.shuffle();
+      _currentQuestionIndex = 0;
+      _score = 0;
+      _selectedAnswer = null;
+      _isAnswerSubmitted = false;
+      _isQuizCompleted = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,19 +116,172 @@ class DailyQuizScreen extends StatelessWidget {
     final colors = AppColors.getColors(isDarkMode);
     final textStyles = AppTextStyles.getStyles(isDarkMode);
 
+    if (_quizQuestions.isEmpty) {
+      return Scaffold(
+        backgroundColor: colors['background'],
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_isQuizCompleted) {
+      return _buildQuizCompletionScreen(colors, textStyles);
+    }
+
+    final currentQuestion = _quizQuestions[_currentQuestionIndex];
+    final allAnswers = currentQuestion.allAnswers;
+
     return Scaffold(
       backgroundColor: colors['background'],
-      appBar: AppBar(
-        title: const Text("Daily Quiz"),
-        backgroundColor: colors['button'],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Question ${_currentQuestionIndex + 1}/${_quizQuestions.length}",
+                style: textStyles['headingLarge'],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                currentQuestion.question,
+                style: textStyles['headingLarge'],
+              ),
+              const SizedBox(height: 24),
+              ...allAnswers.map((answer) => _buildAnswerOption(
+                answer,
+                colors,
+                textStyles,
+                isCorrect: answer == currentQuestion.correctAnswer,
+              )),
+              const Spacer(),
+              if (_isAnswerSubmitted)
+                Text(
+                  _selectedAnswer == currentQuestion.correctAnswer
+                      ? 'Correct!'
+                      : 'Wrong! The correct answer is ${currentQuestion.correctAnswer}',
+                  style: TextStyle(
+                    color: _selectedAnswer == currentQuestion.correctAnswer
+                        ? Colors.green
+                        : Colors.red,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: ElevatedButton(
+                  onPressed: _isAnswerSubmitted ? _nextQuestion : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors['button'],
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                  ),
+                  child: Text(
+                    _currentQuestionIndex < _quizQuestions.length - 1
+                        ? "Next"
+                        : "Finish",
+                    style: textStyles['buttonText'],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      body: Center(
+    );
+  }
+
+  Widget _buildAnswerOption(
+      String text,
+      Map<String, Color> colors,
+      Map<String, TextStyle> textStyles,
+      {required bool isCorrect}
+      ) {
+    final bool isSelected = _selectedAnswer == text;
+    Color borderColor = colors['answerOptionBorder'] ?? Colors.grey;
+    Color backgroundColor = colors['answerOptionBackground'] ?? Colors.white;
+
+    if (_isAnswerSubmitted) {
+      if (isSelected) {
+        backgroundColor = isCorrect ? Colors.green[100]! : Colors.red[100]!;
+        borderColor = isCorrect ? Colors.green : Colors.red;
+      } else if (isCorrect) {
+        backgroundColor = Colors.green[100]!;
+        borderColor = Colors.green;
+      }
+    }
+
+    return GestureDetector(
+      onTap: () => _submitAnswer(text),
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          border: Border.all(color: borderColor),
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Text(
-          "Welcome to your daily quiz!\n(Coming soon...)",
-          style: textStyles['headingLarge'],
-          textAlign: TextAlign.center,
+          text,
+          style: textStyles['answerOptionText'],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuizCompletionScreen(
+      Map<String, Color> colors,
+      Map<String, TextStyle> textStyles,
+      ) {
+    return Scaffold(
+      backgroundColor: colors['background'],
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Your Score',
+                  style: textStyles['headingLarge'],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '$_score/${_quizQuestions.length}',
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: colors['button'],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'You earned $_score points!',
+                  style: textStyles['bodyMedium'],
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors['button'],
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 16),
+                  ),
+                  child: Text(
+                    "Return to Home",
+                    style: textStyles['buttonText'],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
+
