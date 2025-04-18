@@ -17,7 +17,7 @@ class MapScreen extends StatefulWidget {
   State<MapScreen> createState() => MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class MapScreenState extends State<MapScreen> {
   DateTime? visitDate;
   GoogleMapController? mapController;
   LatLng? currentPosition;
@@ -245,3 +245,4 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 }
+

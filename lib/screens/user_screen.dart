@@ -96,7 +96,7 @@ class UserScreenState extends State<UserScreen> {
                         children: [
                           Text(user.name, style: textStyles['headingLarge']),
                           Text(
-                            user.rankType?.toShortString() ?? 'No Rank',
+                            user.rankType,
                             style: textStyles['bodyRegular'],
                           ),
                         ],

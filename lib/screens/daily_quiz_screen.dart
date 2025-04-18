@@ -25,6 +25,7 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
   String? _selectedAnswer;
   bool _isAnswerSubmitted = false;
   bool _isQuizCompleted = false;
+  List<String> _currentShuffledAnswers = [];
 
   @override
   void initState() {
@@ -42,6 +43,11 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
       // Shuffle and take first 5 questions
       _questions.shuffle();
       _quizQuestions = _questions.take(5).toList();
+      
+      // Initialize answers for first question
+      if (_quizQuestions.isNotEmpty) {
+        _currentShuffledAnswers = List.from(_quizQuestions[0].allAnswers)..shuffle();
+      }
 
       setState(() {});
     } catch (e) {
@@ -69,6 +75,8 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
     if (_currentQuestionIndex < _quizQuestions.length - 1) {
       setState(() {
         _currentQuestionIndex++;
+        // Shuffle answers for the new question
+        _currentShuffledAnswers = List.from(_quizQuestions[_currentQuestionIndex].allAnswers)..shuffle();
         _selectedAnswer = null;
         _isAnswerSubmitted = false;
       });
@@ -103,6 +111,8 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
     setState(() {
       _quizQuestions.shuffle();
       _currentQuestionIndex = 0;
+      // Reset shuffled answers for the first question
+      _currentShuffledAnswers = List.from(_quizQuestions[0].allAnswers)..shuffle();
       _score = 0;
       _selectedAnswer = null;
       _isAnswerSubmitted = false;
@@ -128,7 +138,8 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
     }
 
     final currentQuestion = _quizQuestions[_currentQuestionIndex];
-    final allAnswers = currentQuestion.allAnswers;
+    // Use stored shuffled answers instead of generating new ones
+    final allAnswers = _currentShuffledAnswers;
 
     return Scaffold(
       backgroundColor: colors['background'],

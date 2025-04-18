@@ -10,7 +10,7 @@ class UserModel {
   final String password;
   final int points;
   final int streaks;
-  final RankType? rankType;
+  final String rankType;
   final UserType userType;
   final DateTime birthDate;
   final bool isDailyQuizDone;
@@ -24,7 +24,7 @@ class UserModel {
     required this.password,
     required this.points,
     required this.streaks,
-    this.rankType,
+    required this.rankType,
     required this.userType,
     required this.birthDate,
     required this.isDailyQuizDone,
@@ -59,7 +59,7 @@ class UserModel {
       password: json['password'],
       points: json['points'] ?? 0,
       streaks: json['streaks'] ?? 0,
-      rankType: json['rank_type'] != null ? RankType.fromString(json['rank_type']) : null,
+      rankType: json['rank_type'],
       userType: json['user_type'] != null ? UserType.fromString(json['user_type']) : UserType.user,
       birthDate: DateTime.parse(json['birth_date']),
       isDailyQuizDone: json['is_daily_quiz_done'] ?? false,
@@ -76,7 +76,7 @@ class UserModel {
       'password': password,
       'points': points,
       'streak': streaks,
-      'rank_type': rankType?.toShortString(),
+      'rank_type': rankType,
       'user_type': userType.toShortString(),
       'birth_date': birthDate.toIso8601String(),
       'is_daily_quiz_done': isDailyQuizDone,
@@ -98,7 +98,7 @@ class UserModel {
     String? password,
     int? points,
     int? streaks,
-    RankType? rankType,
+    String? rankType,
     UserType? userType,
     DateTime? birthDate,
     bool? isDailyQuizDone,
