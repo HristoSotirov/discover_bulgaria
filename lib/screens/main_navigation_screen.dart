@@ -32,7 +32,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         userId: widget.user.id!,
         initialUserData: widget.user,
       ),
-      const MapScreen(),
+    MapScreen(userId: widget.user.id!),
       RankingScreen(
         currentUser: widget.user,
       ),

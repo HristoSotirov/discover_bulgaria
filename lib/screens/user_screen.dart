@@ -141,7 +141,10 @@ class _UserScreenState extends State<UserScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => NearbyLandmarksScreen(allLandmarks: allLandmarks),
+                        builder: (context) => NearbyLandmarksScreen(
+                          allLandmarks: allLandmarks,
+                          userId: widget.userId, // ако си в StatefulWidget и имаш `userId`
+                        ),
                       ),
                     );
                   },
@@ -180,7 +183,7 @@ class _UserScreenState extends State<UserScreen> {
                             user.isDailyQuizDone
                                 ? 'assets/quiz_done.png'
                                 : 'assets/quiz.webp',
-                            height: 250,
+                            height: 200,
                             fit: BoxFit.contain,
                           ),
                         ),
