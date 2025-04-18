@@ -242,15 +242,53 @@ class _AddLandscapeScreenState extends State<AddLandscapeScreen> {
   final _descriptionController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
+  final _imageUrlController = TextEditingController();
   final _landmarkService = LandmarkService();
+  final _questionService = QuestionService();
   final _prefsManager = PreferencesManager();
-  String? _imageUrl;
   bool _isLoading = false;
+  List<QuestionModel> _allQuestions = [];
+  List<String> _selectedQuestionIds = [];
+  final _questionSearchController = TextEditingController();
+  List<QuestionModel> _filteredQuestions = [];
 
-  Future<void> _uploadImage() async {
+  @override
+  void initState() {
+    super.initState();
+    _loadQuestions();
+    _questionSearchController.addListener(_filterQuestions);
+  }
+
+  @override
+  void dispose() {
+    _questionSearchController.dispose();
+    super.dispose();
+  }
+
+  void _filterQuestions() {
+    final query = _questionSearchController.text.toLowerCase();
     setState(() {
-      _imageUrl = 'https://placeholder.com/image.jpg';
+      _filteredQuestions = _allQuestions.where((question) =>
+        question.question.toLowerCase().contains(query) ||
+        question.correctAnswer.toLowerCase().contains(query)
+      ).toList();
     });
+  }
+
+  Future<void> _loadQuestions() async {
+    try {
+      final questions = await _questionService.getAllQuestions();
+      setState(() {
+        _allQuestions = questions;
+        _filteredQuestions = questions;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading questions: ${e.toString()}')),
+        );
+      }
+    }
   }
 
   Future<void> _saveLandmark() async {
@@ -260,12 +298,12 @@ class _AddLandscapeScreenState extends State<AddLandscapeScreen> {
 
     try {
       final landmark = LandmarkModel(
-        imageUrl: _imageUrl ?? '',
+        imageUrl: _imageUrlController.text,
         name: _nameController.text,
         description: _descriptionController.text,
         latitude: double.parse(_latitudeController.text),
         longitude: double.parse(_longitudeController.text),
-        questions: [],
+        questions: _selectedQuestionIds, // Use selected question IDs
       );
 
       await _landmarkService.createLandmark(landmark);
@@ -308,73 +346,176 @@ class _AddLandscapeScreenState extends State<AddLandscapeScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Име на забележителността',
-                      border: OutlineInputBorder(),
+                  FutureBuilder<String>(
+                    future: _prefsManager.translate('Име на забележителността'),
+                    builder: (context, snapshot) => TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: snapshot.data ?? '',
+                        border: OutlineInputBorder(),
+                        labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                      ),
+                      style: _prefsManager.currentStyles['bodyRegular'],
+                      validator: (value) => value?.isEmpty == true ? 
+                        'Моля въведете име' : null,
                     ),
-                    validator: (value) => value?.isEmpty == true ? 'Моля въведете име' : null,
                   ),
                   SizedBox(height: 16),
-                  TextFormField(
-                    controller: _descriptionController,
-                    decoration: InputDecoration(
-                      labelText: 'Описание',
-                      border: OutlineInputBorder(),
+                  FutureBuilder<String>(
+                    future: _prefsManager.translate('Описание'),
+                    builder: (context, snapshot) => TextFormField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(
+                        labelText: snapshot.data ?? '',
+                        border: OutlineInputBorder(),
+                        labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                      ),
+                      style: _prefsManager.currentStyles['bodyRegular'],
+                      maxLines: 3,
+                      validator: (value) => value?.isEmpty == true ? 
+                        'Моля въведете описание' : null,
                     ),
-                    maxLines: 3,
-                    validator: (value) => value?.isEmpty == true ? 'Моля въведете описание' : null,
                   ),
                   SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
-                        child: TextFormField(
-                          controller: _latitudeController,
-                          decoration: InputDecoration(
-                            labelText: 'Latitude',
-                            border: OutlineInputBorder(),
+                        child: FutureBuilder<String>(
+                          future: _prefsManager.translate('Географска ширина'),
+                          builder: (context, snapshot) => TextFormField(
+                            controller: _latitudeController,
+                            decoration: InputDecoration(
+                              labelText: snapshot.data ?? '',
+                              border: OutlineInputBorder(),
+                              labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                            ),
+                            style: _prefsManager.currentStyles['bodyRegular'],
+                            keyboardType: TextInputType.number,
+                            validator: (value) => value?.isEmpty == true ? 'Required' : null,
                           ),
-                          keyboardType: TextInputType.number,
-                          validator: (value) => value?.isEmpty == true ? 'Required' : null,
                         ),
                       ),
                       SizedBox(width: 16),
                       Expanded(
-                        child: TextFormField(
-                          controller: _longitudeController,
-                          decoration: InputDecoration(
-                            labelText: 'Longitude',
-                            border: OutlineInputBorder(),
+                        child: FutureBuilder<String>(
+                          future: _prefsManager.translate('Географска дължина'),
+                          builder: (context, snapshot) => TextFormField(
+                            controller: _longitudeController,
+                            decoration: InputDecoration(
+                              labelText: snapshot.data ?? '',
+                              border: OutlineInputBorder(),
+                              labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                            ),
+                            style: _prefsManager.currentStyles['bodyRegular'],
+                            keyboardType: TextInputType.number,
+                            validator: (value) => value?.isEmpty == true ? 'Required' : null,
                           ),
-                          keyboardType: TextInputType.number,
-                          validator: (value) => value?.isEmpty == true ? 'Required' : null,
                         ),
                       ),
                     ],
                   ),
                   SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    icon: Icon(Icons.upload),
-                    label: Text('Качи снимка'),
-                    onPressed: _uploadImage,
-                  ),
-                  if (_imageUrl != null) ...[
-                    SizedBox(height: 16),
-                    Image.network(_imageUrl!, height: 200),
-                  ],
-                  SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _saveLandmark,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _prefsManager.currentColors['button'],
-                      foregroundColor: _prefsManager.currentColors['background'],
-                      minimumSize: Size(double.infinity, 50),
+                  FutureBuilder<String>(
+                    future: _prefsManager.translate('URL на снимката'),
+                    builder: (context, snapshot) => TextFormField(
+                      controller: _imageUrlController,
+                      decoration: InputDecoration(
+                        labelText: snapshot.data ?? '',
+                        border: OutlineInputBorder(),
+                        labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                      ),
+                      style: _prefsManager.currentStyles['bodyRegular'],
+                      validator: (value) => value?.isEmpty == true ? 
+                        'Please enter image URL' : null,
                     ),
-                    child: _isLoading
-                        ? CircularProgressIndicator(color: _prefsManager.currentColors['background'])
-                        : Text('Запази'),
+                  ),
+                  if (_imageUrlController.text.isNotEmpty) ...[
+                    Image.network(
+                      _imageUrlController.text,
+                      height: 200,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Text('Invalid image URL'),
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                  SizedBox(height: 16),
+                  FutureBuilder<String>(
+                    future: _prefsManager.translate('Търсене на въпроси'),
+                    builder: (context, snapshot) => TextField(
+                      controller: _questionSearchController,
+                      decoration: InputDecoration(
+                        labelText: snapshot.data ?? '',
+                        prefixIcon: Icon(Icons.search),
+                        border: OutlineInputBorder(),
+                        labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                      ),
+                      style: _prefsManager.currentStyles['bodyRegular'],
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Card(
+                    color: _prefsManager.currentColors['box'],
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: FutureBuilder<String>(
+                            future: _prefsManager.translate('Изберете въпроси за тази забележителност'),
+                            builder: (context, snapshot) => Text(
+                              snapshot.data ?? '',
+                              style: _prefsManager.currentStyles['bodyRegular'],
+                            ),
+                          ),
+                        ),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: _filteredQuestions.length,
+                          itemBuilder: (context, index) {
+                            final question = _filteredQuestions[index];
+                            final isSelected = _selectedQuestionIds.contains(question.id);
+                            
+                            return CheckboxListTile(
+                              title: Text(question.question),
+                              subtitle: Text(question.correctAnswer),
+                              value: isSelected,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  if (value == true) {
+                                    _selectedQuestionIds.add(question.id!);
+                                  } else {
+                                    _selectedQuestionIds.remove(question.id);
+                                  }
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  FutureBuilder<String>(
+                    future: _prefsManager.translate('Запази'),
+                    builder: (context, snapshot) => ElevatedButton(
+                      onPressed: _isLoading ? null : _saveLandmark,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _prefsManager.currentColors['button'],
+                        foregroundColor: _prefsManager.currentColors['background'],
+                        minimumSize: Size(double.infinity, 50),
+                      ),
+                      child: _isLoading
+                          ? CircularProgressIndicator(
+                              color: _prefsManager.currentColors['background']
+                            )
+                          : Text(
+                              snapshot.data ?? '',
+                              style: _prefsManager.currentStyles['bodyRegular']?.copyWith(
+                                color: _prefsManager.currentColors['background']
+                              ),
+                            ),
+                    ),
                   ),
                 ],
               ),
@@ -398,12 +539,31 @@ class _DeleteLandscapeScreenState extends State<DeleteLandscapeScreen> {
   final _landscapeService = LandmarkService();
   final _prefsManager = PreferencesManager();
   List<LandmarkModel> _landscapes = [];
+  List<LandmarkModel> _filteredLandscapes = [];
   bool _isLoading = true;
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadLandscapes();
+    _searchController.addListener(_filterLandscapes);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterLandscapes() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredLandscapes = _landscapes.where((landmark) =>
+        landmark.name.toLowerCase().contains(query) ||
+        landmark.description.toLowerCase().contains(query)
+      ).toList();
+    });
   }
 
   Future<void> _loadLandscapes() async {
@@ -411,10 +571,11 @@ class _DeleteLandscapeScreenState extends State<DeleteLandscapeScreen> {
       final landscapes = await _landscapeService.getAllLandmarks();
       setState(() {
         _landscapes = landscapes;
+        _filteredLandscapes = landscapes;
         _isLoading = false;
       });
     } catch (e) {
-      // Грешка
+      // Handle error
     }
   }
 
@@ -432,23 +593,46 @@ class _DeleteLandscapeScreenState extends State<DeleteLandscapeScreen> {
           ),
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-        itemCount: _landscapes.length,
-        itemBuilder: (context, index) => ListTile(
-          leading: Image.network(_landscapes[index].imageUrl, width: 50),
-          title: Text(_landscapes[index].name),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () async {
-              if (_landscapes[index].id != null) {
-                await _landscapeService.deleteLandmark(_landscapes[index].id!);
-                _loadLandscapes();
-              }
-            },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: FutureBuilder<String>(
+              future: _prefsManager.translate('Търсене на забележителности'),
+              builder: (context, snapshot) => TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  labelText: snapshot.data ?? '',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                  labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                ),
+                style: _prefsManager.currentStyles['bodyRegular'],
+              ),
+            ),
           ),
-        ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    itemCount: _filteredLandscapes.length,
+                    itemBuilder: (context, index) => ListTile(
+                      leading: Image.network(_filteredLandscapes[index].imageUrl, width: 50),
+                      title: Text(_filteredLandscapes[index].name),
+                      subtitle: Text(_filteredLandscapes[index].description),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () async {
+                          if (_filteredLandscapes[index].id != null) {
+                            await _landscapeService.deleteLandmark(_filteredLandscapes[index].id!);
+                            _loadLandscapes();
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -465,13 +649,33 @@ class DeleteQuestionScreen extends StatefulWidget {
 class _DeleteQuestionScreenState extends State<DeleteQuestionScreen> {
   final _questionService = QuestionService();
   final _prefsManager = PreferencesManager();
+  final _landmarkService = LandmarkService(); 
   List<QuestionModel> _questions = [];
   bool _isLoading = true;
+  final _searchController = TextEditingController();
+  List<QuestionModel> _filteredQuestions = [];
 
   @override
   void initState() {
     super.initState();
     _loadQuestions();
+    _searchController.addListener(_filterQuestions);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterQuestions() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredQuestions = _questions.where((question) =>
+        question.question.toLowerCase().contains(query) ||
+        question.correctAnswer.toLowerCase().contains(query)
+      ).toList();
+    });
   }
 
   Future<void> _loadQuestions() async {
@@ -489,6 +693,40 @@ class _DeleteQuestionScreenState extends State<DeleteQuestionScreen> {
     }
   }
 
+  Future<void> _deleteQuestion(QuestionModel question) async {
+    if (question.id == null) return;
+
+    try {
+      // First, find all landmarks that have this question
+      final landmarks = await _landmarkService.getAllLandmarks();
+      for (var landmark in landmarks) {
+        if (landmark.questions.contains(question.id)) {
+          // Remove the question ID from the landmark's questions list
+          final updatedLandmark = LandmarkModel(
+            id: landmark.id,
+            imageUrl: landmark.imageUrl,
+            name: landmark.name,
+            description: landmark.description,
+            latitude: landmark.latitude,
+            longitude: landmark.longitude,
+            questions: landmark.questions.where((q) => q != question.id).toList(),
+          );
+          await _landmarkService.updateLandmark(updatedLandmark);
+        }
+      }
+
+      // Then delete the question
+      await _questionService.deleteQuestion(question.id!);
+      _loadQuestions();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -503,23 +741,44 @@ class _DeleteQuestionScreenState extends State<DeleteQuestionScreen> {
           ),
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-        itemCount: _questions.length,
-        itemBuilder: (context, index) => ListTile(
-          title: Text(_questions[index].question),
-          subtitle: Text(_questions[index].correctAnswer),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () async {
-              if (_questions[index].id != null) {
-                await _questionService.deleteQuestion(_questions[index].id!);
-                _loadQuestions();
-              }
-            },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: FutureBuilder<String>(
+              future: _prefsManager.translate('Търсене на въпроси'),
+              builder: (context, snapshot) => TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  labelText: snapshot.data ?? '',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                  labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                ),
+                style: _prefsManager.currentStyles['bodyRegular'],
+              ),
+            ),
           ),
-        ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    itemCount: _filteredQuestions.length,
+                    itemBuilder: (context, index) => ListTile(
+                      title: Text(_filteredQuestions[index].question),
+                      subtitle: Text(_filteredQuestions[index].correctAnswer),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () async {
+                          if (_filteredQuestions[index].id != null) {
+                            await _deleteQuestion(_filteredQuestions[index]);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -553,7 +812,7 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
       final question = QuestionModel(
         question: _questionController.text,
         correctAnswer: _correctAnswerController.text,
-        incorrectAnswers: [  // Changed from wrongAnswers to incorrectAnswers
+        incorrectAnswers: [
           _wrongAnswer1Controller.text,
           _wrongAnswer2Controller.text,
           _wrongAnswer3Controller.text,
@@ -561,6 +820,7 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
       );
 
       await _questionService.createQuestion(question);
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -598,61 +858,94 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
           key: _formKey,
           child: Column(
             children: [
-              TextFormField(
-                controller: _questionController,
-                decoration: InputDecoration(
-                  labelText: 'Въпрос',
-                  border: OutlineInputBorder(),
+              FutureBuilder<String>(
+                future: _prefsManager.translate('Въпрос'),
+                builder: (context, snapshot) => TextFormField(
+                  controller: _questionController,
+                  decoration: InputDecoration(
+                    labelText: snapshot.data ?? '',
+                    border: OutlineInputBorder(),
+                    labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                  ),
+                  style: _prefsManager.currentStyles['bodyRegular'],
+                  validator: (value) => value?.isEmpty == true ? 'Моля въведете въпрос' : null,
                 ),
-                validator: (value) => value?.isEmpty == true ? 'Моля въведете въпрос' : null,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                controller: _correctAnswerController,
-                decoration: InputDecoration(
-                  labelText: 'Правилен отговор',
-                  border: OutlineInputBorder(),
+              FutureBuilder<String>(
+                future: _prefsManager.translate('Правилен отговор'),
+                builder: (context, snapshot) => TextFormField(
+                  controller: _correctAnswerController,
+                  decoration: InputDecoration(
+                    labelText: snapshot.data ?? '',
+                    border: OutlineInputBorder(),
+                    labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                  ),
+                  style: _prefsManager.currentStyles['bodyRegular'],
+                  validator: (value) => value?.isEmpty == true ? 'Моля въведете правилен отговор' : null,
                 ),
-                validator: (value) => value?.isEmpty == true ? 'Моля въведете правилен отговор' : null,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                controller: _wrongAnswer1Controller,
-                decoration: InputDecoration(
-                  labelText: 'Грешен отговор 1',
-                  border: OutlineInputBorder(),
+              FutureBuilder<String>(
+                future: _prefsManager.translate('Грешен отговор 1'),
+                builder: (context, snapshot) => TextFormField(
+                  controller: _wrongAnswer1Controller,
+                  decoration: InputDecoration(
+                    labelText: snapshot.data ?? '',
+                    border: OutlineInputBorder(),
+                    labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                  ),
+                  style: _prefsManager.currentStyles['bodyRegular'],
+                  validator: (value) => value?.isEmpty == true ? 'Моля въведете грешен отговор' : null,
                 ),
-                validator: (value) => value?.isEmpty == true ? 'Моля въведете грешен отговор' : null,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                controller: _wrongAnswer2Controller,
-                decoration: InputDecoration(
-                  labelText: 'Грешен отговор 2',
-                  border: OutlineInputBorder(),
+              FutureBuilder<String>(
+                future: _prefsManager.translate('Грешен отговор 2'),
+                builder: (context, snapshot) => TextFormField(
+                  controller: _wrongAnswer2Controller,
+                  decoration: InputDecoration(
+                    labelText: snapshot.data ?? '',
+                    border: OutlineInputBorder(),
+                    labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                  ),
+                  style: _prefsManager.currentStyles['bodyRegular'],
+                  validator: (value) => value?.isEmpty == true ? 'Моля въведете грешен отговор' : null,
                 ),
-                validator: (value) => value?.isEmpty == true ? 'Моля въведете грешен отговор' : null,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                controller: _wrongAnswer3Controller,
-                decoration: InputDecoration(
-                  labelText: 'Грешен отговор 3',
-                  border: OutlineInputBorder(),
+              FutureBuilder<String>(
+                future: _prefsManager.translate('Грешен отговор 3'),
+                builder: (context, snapshot) => TextFormField(
+                  controller: _wrongAnswer3Controller,
+                  decoration: InputDecoration(
+                    labelText: snapshot.data ?? '',
+                    border: OutlineInputBorder(),
+                    labelStyle: _prefsManager.currentStyles['bodyRegular'],
+                  ),
+                  style: _prefsManager.currentStyles['bodyRegular'],
+                  validator: (value) => value?.isEmpty == true ? 'Моля въведете грешен отговор' : null,
                 ),
-                validator: (value) => value?.isEmpty == true ? 'Моля въведете грешен отговор' : null,
               ),
               SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _saveQuestion,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _prefsManager.currentColors['button'],
-                  foregroundColor: _prefsManager.currentColors['background'],
-                  minimumSize: Size(double.infinity, 50),
+              FutureBuilder<String>(
+                future: _prefsManager.translate('Запази'),
+                builder: (context, snapshot) => ElevatedButton(
+                  onPressed: _isLoading ? null : _saveQuestion,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _prefsManager.currentColors['button'],
+                    foregroundColor: _prefsManager.currentColors['background'],
+                    minimumSize: Size(double.infinity, 50),
+                  ),
+                  child: _isLoading
+                      ? CircularProgressIndicator(color: _prefsManager.currentColors['background'])
+                      : Text(
+                          snapshot.data ?? '',
+                          style: _prefsManager.currentStyles['bodyRegular']?.copyWith(
+                            color: _prefsManager.currentColors['background']
+                          ),
+                        ),
                 ),
-                child: _isLoading
-                    ? CircularProgressIndicator(color: _prefsManager.currentColors['background'])
-                    : Text('Запази'),
               ),
             ],
           ),

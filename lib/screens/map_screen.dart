@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -14,10 +13,10 @@ class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  State<MapScreen> createState() => MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class MapScreenState extends State<MapScreen> {
   GoogleMapController? mapController;
   LatLng? currentPosition;
   final Set<Marker> _markers = {};
@@ -83,6 +82,11 @@ class _MapScreenState extends State<MapScreen> {
       print("Error loading landmarks: $e");
     }
   }
+
+  void refresh() {
+    _loadData();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -204,4 +208,4 @@ class _MapScreenState extends State<MapScreen> {
       ],
     );
   }
-  }
+}
