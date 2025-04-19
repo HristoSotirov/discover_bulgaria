@@ -155,10 +155,10 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   FutureBuilder<String>(
-                    future: _prefsManager.translate("Question ${_currentQuestionIndex + 1}/${_quizQuestions.length}"),
+                    future: _prefsManager.translate("Въпрос ${_currentQuestionIndex + 1}/${_quizQuestions.length}"),
                     builder: (context, snapshot) {
                       return Text(
-                        snapshot.data ?? "Question ${_currentQuestionIndex + 1}/${_quizQuestions.length}",
+                        snapshot.data ?? "Въпрос ${_currentQuestionIndex + 1}/${_quizQuestions.length}",
                         style: textStyles['headingLarge'],
                         textAlign: TextAlign.center,
                       );
@@ -187,8 +187,8 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
                     FutureBuilder<String>(
                       future: _prefsManager.translate(
                         _selectedAnswer == currentQuestion.correctAnswer
-                            ? 'Correct!'
-                            : 'Wrong! The correct answer is ${currentQuestion.correctAnswer}',
+                            ? 'Правилно!'
+                            : 'Грешка! Правилният отговор е ${currentQuestion.correctAnswer}',
                       ),
                       builder: (context, snapshot) {
                         return Text(
@@ -207,7 +207,7 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
                   const SizedBox(height: 16),
                   FutureBuilder<String>(
                     future: _prefsManager.translate(
-                      _currentQuestionIndex < _quizQuestions.length - 1 ? "Next" : "Finish"
+                      _currentQuestionIndex < _quizQuestions.length - 1 ? "Следващ" : "Приключи",
                     ),
                     builder: (context, snapshot) {
                       return ElevatedButton(
@@ -292,10 +292,10 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 FutureBuilder<String>(
-                  future: _prefsManager.translate('Your Score'),
+                  future: _prefsManager.translate('Твоят резултат е'),
                   builder: (context, snapshot) {
                     return Text(
-                      snapshot.data ?? 'Your Score',
+                      snapshot.data ?? 'Твоят резултат е',
                       style: textStyles['headingLarge'],
                       textAlign: TextAlign.center,
                     );
@@ -313,10 +313,10 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
                 ),
                 const SizedBox(height: 24),
                 FutureBuilder<String>(
-                  future: _prefsManager.translate('You earned $_score points!'),
+                  future: _prefsManager.translate('Ти спечели $_score точки!'),
                   builder: (context, snapshot) {
                     return Text(
-                      snapshot.data ?? 'You earned $_score points!',
+                      snapshot.data ?? 'Ти спечели $_score точки!',
                       style: textStyles['bodyMedium'],
                       textAlign: TextAlign.center,
                     );
@@ -324,7 +324,7 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
                 ),
                 const SizedBox(height: 32),
                 FutureBuilder<String>(
-                  future: _prefsManager.translate('Return to Home'),
+                  future: _prefsManager.translate('Върни се в началото'),
                   builder: (context, snapshot) {
                     return ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(true),
@@ -334,7 +334,7 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
                             horizontal: 32, vertical: 16),
                       ),
                       child: Text(
-                        snapshot.data ?? 'Return to Home',
+                        snapshot.data ?? 'Върни се в началото',
                         style: textStyles['buttonText'],
                       ),
                     );
