@@ -32,7 +32,6 @@ class UserScreenState extends State<UserScreen> {
   bool isLoading = true;
   List<LandmarkModel> allLandmarks = [];
 
-
   @override
   void initState() {
     super.initState();
@@ -43,11 +42,11 @@ class UserScreenState extends State<UserScreen> {
   Future<void> _loadUserAndLandmarks() async {
     try {
       final fetchedUser = await UserService().getUserById(widget.userId);
+
       final count = await VisitedLandmarkService()
           .getVisitedLandmarksCount(widget.userId);
-    //  final count = 7;
-      final fetchedLandmarks = await LandmarkService().getAllLandmarks();
 
+      final fetchedLandmarks = await LandmarkService().getAllLandmarks();
 
       if (!mounted) return;
 
@@ -150,23 +149,28 @@ class UserScreenState extends State<UserScreen> {
                 ),
                 const SizedBox(height: 20),
 
+                
                 // What's nearby
                 _actionCard(
                   icon: Icons.signpost,
                   text: "Какво е на близо?",
                   buttonText: "Виж тук",
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => NearbyLandmarksScreen(
                           allLandmarks: allLandmarks,
-                          userId: widget.userId, // ако си в StatefulWidget и имаш `userId`
+                          userId: widget.userId,
                         ),
                       ),
                     );
-                  },
 
+                    // Refresh the screen if landmarks were updated
+                    if (result == true) {
+                      refresh(); // Reload the landmarks and user data
+                    }
+                  },
                   colors: colors,
                   textStyles: textStyles,
                 ),
@@ -222,7 +226,7 @@ class UserScreenState extends State<UserScreen> {
                                       builder: (context) => DailyQuizScreen(currentUser: user),
                                     ),
                                   );
-                                  
+
                                   // Refresh the screen if quiz was completed
                                   if (result == true) {
                                     await _loadUserAndLandmarks();
@@ -305,4 +309,3 @@ class UserScreenState extends State<UserScreen> {
     );
   }
 }
-
