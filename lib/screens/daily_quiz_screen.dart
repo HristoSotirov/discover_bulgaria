@@ -5,6 +5,7 @@ import '../models/question_model.dart';
 import '../models/user_model.dart';
 import '../services/question_service.dart';
 import '../services/user_service.dart';
+import '../config/preferences_manager.dart';
 
 class DailyQuizScreen extends StatefulWidget {
   final UserModel currentUser;
@@ -18,6 +19,7 @@ class DailyQuizScreen extends StatefulWidget {
 class _DailyQuizScreenState extends State<DailyQuizScreen> {
   late final QuestionService _questionService;
   late final UserService _userService;
+  late final PreferencesManager _prefsManager;
   late List<QuestionModel> _questions = [];
   late List<QuestionModel> _quizQuestions = [];
   int _currentQuestionIndex = 0;
@@ -32,6 +34,7 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
     super.initState();
     _questionService = QuestionService();
     _userService = UserService();
+    _prefsManager = PreferencesManager();
     _initializeQuiz();
   }
 
@@ -138,66 +141,92 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
     }
 
     final currentQuestion = _quizQuestions[_currentQuestionIndex];
-    // Use stored shuffled answers instead of generating new ones
     final allAnswers = _currentShuffledAnswers;
 
     return Scaffold(
       backgroundColor: colors['background'],
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Question ${_currentQuestionIndex + 1}/${_quizQuestions.length}",
-                style: textStyles['headingLarge'],
-              ),
-              const SizedBox(height: 24),
-              Text(
-                currentQuestion.question,
-                style: textStyles['headingLarge'],
-              ),
-              const SizedBox(height: 24),
-              ...allAnswers.map((answer) => _buildAnswerOption(
-                answer,
-                colors,
-                textStyles,
-                isCorrect: answer == currentQuestion.correctAnswer,
-              )),
-              const Spacer(),
-              if (_isAnswerSubmitted)
-                Text(
-                  _selectedAnswer == currentQuestion.correctAnswer
-                      ? 'Correct!'
-                      : 'Wrong! The correct answer is ${currentQuestion.correctAnswer}',
-                  style: TextStyle(
-                    color: _selectedAnswer == currentQuestion.correctAnswer
-                        ? Colors.green
-                        : Colors.red,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  FutureBuilder<String>(
+                    future: _prefsManager.translate("Question ${_currentQuestionIndex + 1}/${_quizQuestions.length}"),
+                    builder: (context, snapshot) {
+                      return Text(
+                        snapshot.data ?? "Question ${_currentQuestionIndex + 1}/${_quizQuestions.length}",
+                        style: textStyles['headingLarge'],
+                        textAlign: TextAlign.center,
+                      );
+                    },
                   ),
-                ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: ElevatedButton(
-                  onPressed: _isAnswerSubmitted ? _nextQuestion : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colors['button'],
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
+                  const SizedBox(height: 24),
+                  FutureBuilder<String>(
+                    future: _prefsManager.translate(currentQuestion.question),
+                    builder: (context, snapshot) {
+                      return Text(
+                        snapshot.data ?? currentQuestion.question,
+                        style: textStyles['headingLarge'],
+                        textAlign: TextAlign.center,
+                      );
+                    },
                   ),
-                  child: Text(
-                    _currentQuestionIndex < _quizQuestions.length - 1
-                        ? "Next"
-                        : "Finish",
-                    style: textStyles['buttonText'],
+                  const SizedBox(height: 24),
+                  ...allAnswers.map((answer) => _buildAnswerOption(
+                    answer,
+                    colors,
+                    textStyles,
+                    isCorrect: answer == currentQuestion.correctAnswer,
+                  )),
+                  const SizedBox(height: 24),
+                  if (_isAnswerSubmitted)
+                    FutureBuilder<String>(
+                      future: _prefsManager.translate(
+                        _selectedAnswer == currentQuestion.correctAnswer
+                            ? 'Correct!'
+                            : 'Wrong! The correct answer is ${currentQuestion.correctAnswer}',
+                      ),
+                      builder: (context, snapshot) {
+                        return Text(
+                          snapshot.data ?? '',
+                          style: TextStyle(
+                            color: _selectedAnswer == currentQuestion.correctAnswer
+                                ? Colors.green
+                                : Colors.red,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        );
+                      },
+                    ),
+                  const SizedBox(height: 16),
+                  FutureBuilder<String>(
+                    future: _prefsManager.translate(
+                      _currentQuestionIndex < _quizQuestions.length - 1 ? "Next" : "Finish"
+                    ),
+                    builder: (context, snapshot) {
+                      return ElevatedButton(
+                        onPressed: _isAnswerSubmitted ? _nextQuestion : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colors['button'],
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 16),
+                        ),
+                        child: Text(
+                          snapshot.data ?? (_currentQuestionIndex < _quizQuestions.length - 1 ? "Next" : "Finish"),
+                          style: textStyles['buttonText'],
+                        ),
+                      );
+                    },
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -205,11 +234,11 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
   }
 
   Widget _buildAnswerOption(
-      String text,
-      Map<String, Color> colors,
-      Map<String, TextStyle> textStyles,
-      {required bool isCorrect}
-      ) {
+    String text,
+    Map<String, Color> colors,
+    Map<String, TextStyle> textStyles,
+    {required bool isCorrect}
+  ) {
     final bool isSelected = _selectedAnswer == text;
     Color borderColor = colors['answerOptionBorder'] ?? Colors.grey;
     Color backgroundColor = colors['answerOptionBackground'] ?? Colors.white;
@@ -224,29 +253,35 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
       }
     }
 
-    return GestureDetector(
-      onTap: () => _submitAnswer(text),
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          border: Border.all(color: borderColor),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          text,
-          style: textStyles['answerOptionText'],
-        ),
-      ),
+    return FutureBuilder<String>(
+      future: _prefsManager.translate(text),
+      builder: (context, snapshot) {
+        return GestureDetector(
+          onTap: () => _submitAnswer(text),
+          child: Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              border: Border.all(color: borderColor),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              snapshot.data ?? text,
+              style: textStyles['answerOptionText'],
+              textAlign: TextAlign.center,
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildQuizCompletionScreen(
-      Map<String, Color> colors,
-      Map<String, TextStyle> textStyles,
-      ) {
+    Map<String, Color> colors,
+    Map<String, TextStyle> textStyles,
+  ) {
     return Scaffold(
       backgroundColor: colors['background'],
       body: SafeArea(
@@ -256,9 +291,15 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Your Score',
-                  style: textStyles['headingLarge'],
+                FutureBuilder<String>(
+                  future: _prefsManager.translate('Your Score'),
+                  builder: (context, snapshot) {
+                    return Text(
+                      snapshot.data ?? 'Your Score',
+                      style: textStyles['headingLarge'],
+                      textAlign: TextAlign.center,
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -268,24 +309,36 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
                     fontWeight: FontWeight.bold,
                     color: colors['button'],
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                Text(
-                  'You earned $_score points!',
-                  style: textStyles['bodyMedium'],
+                FutureBuilder<String>(
+                  future: _prefsManager.translate('You earned $_score points!'),
+                  builder: (context, snapshot) {
+                    return Text(
+                      snapshot.data ?? 'You earned $_score points!',
+                      style: textStyles['bodyMedium'],
+                      textAlign: TextAlign.center,
+                    );
+                  },
                 ),
                 const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colors['button'],
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 16),
-                  ),
-                  child: Text(
-                    "Return to Home",
-                    style: textStyles['buttonText'],
-                  ),
+                FutureBuilder<String>(
+                  future: _prefsManager.translate('Return to Home'),
+                  builder: (context, snapshot) {
+                    return ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colors['button'],
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 16),
+                      ),
+                      child: Text(
+                        snapshot.data ?? 'Return to Home',
+                        style: textStyles['buttonText'],
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

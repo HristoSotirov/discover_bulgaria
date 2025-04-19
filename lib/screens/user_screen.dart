@@ -103,17 +103,16 @@ class UserScreenState extends State<UserScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => ProfileEditScreen(user: user),
                           ),
-                        ).then((value) {
-                          if (value == true) {
-                            refresh();
-                          }
-                        });
+                        );
+                        if (result == true) {
+                          refresh(); // This will reload user data
+                        }
                       },
                       child: CircleAvatar(
                         radius: 35,

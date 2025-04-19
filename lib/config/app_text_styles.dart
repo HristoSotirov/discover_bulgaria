@@ -40,7 +40,7 @@ class AppTextStyles {
       fontFamily: 'Roboto',
       fontSize: 18,
       fontWeight: FontWeight.w700,
-      color: AppColors.lightTheme['text'],
+      color: AppColors.darkTheme['text'],
     ),
   };
 

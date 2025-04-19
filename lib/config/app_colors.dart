@@ -14,7 +14,7 @@ class AppColors {
     'background': Color(0xFF0D1B2A),
     'box': Color(0xFF102A43),
     'appBar': Color(0xFF1C3D5A),
-    'button': Color(0xFF1C3D5A),
+    'button': Color(0xFF2B5D82),
     'accent': Color(0xFF2B5D82),
     'text': Color(0xFF3F7CB5),
   };

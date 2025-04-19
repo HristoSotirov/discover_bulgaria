@@ -263,11 +263,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         suffixIcon: suffixWidget != null
             ? Container(
-          width: fieldType == FieldType.email ? 100 : 40,
+          width: 40,
           alignment: Alignment.center,
           child: suffixWidget,
-        )
-            : null,
+        ) : null,
       ),
       keyboardType: isPassword
           ? TextInputType.visiblePassword

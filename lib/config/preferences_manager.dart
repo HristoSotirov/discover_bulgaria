@@ -169,5 +169,8 @@ class PreferencesManager extends ChangeNotifier {
     _isOnboardingDone = true;
     notifyListeners();
   }
-}
 
+  Future<void> toggleTheme() async {
+    await setDarkMode(!_isDarkMode);
+  }
+}
