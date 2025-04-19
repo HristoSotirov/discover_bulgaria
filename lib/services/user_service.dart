@@ -1,16 +1,27 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/user_model.dart'; // поправен import (малка буква)
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
+import '../models/user_model.dart';
 
 class UserService {
   final _supabase = Supabase.instance.client;
 
+  String hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+
   Future<UserModel?> loginUser(String email, String password) async {
     try {
+      final hashedPassword = hashPassword(password);
+
       final response = await _supabase
           .from('users')
           .select()
           .eq('email', email)
-          .eq('password', password)
+          .eq('password', hashedPassword)
           .maybeSingle();
 
       if (response == null) {
@@ -33,13 +44,18 @@ class UserService {
     }
   }
 
+
   Future<void> createUser(UserModel user) async {
     try {
-      await _supabase.from('users').insert(user.toJson());
+      final hashedUser = user.copyWith(
+        password: hashPassword(user.password),
+      );
+      await _supabase.from('users').insert(hashedUser.toJson());
     } catch (e) {
       throw Exception('User creation failed: $e');
     }
   }
+
 
   Future<UserModel?> getUserById(String userId) async {
     try {
