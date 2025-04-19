@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:discover_bulgaria/config/preferences_manager.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
+import 'login_screen.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   final UserModel user;
@@ -306,6 +307,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             _prefsManager.translate('Език'),
             _prefsManager.translate('Запази промените'),
             _prefsManager.translate('Назад'),
+            _prefsManager.translate('Изход'), // Add new translation
           ]),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
@@ -423,6 +425,40 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         texts[7],
                         style: _prefsManager.currentStyles['bodyRegular']?.copyWith(
                           color: _prefsManager.currentColors['button'],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: BorderSide(color: Colors.red),
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        minimumSize: Size(double.infinity, 48),
+                      ),
+                      onPressed: () async {
+                        try {
+                          await _prefsManager.clearUserSession();
+                          if (!mounted) return;
+                          
+                          // Replace named route navigation with MaterialPageRoute
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => LoginScreen(),
+                            ),
+                            (route) => false,
+                          );
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error logging out: $e')),
+                          );
+                        }
+                      },
+                      child: Text(
+                        texts[8], // "Изход" translation
+                        style: _prefsManager.currentStyles['bodyRegular']?.copyWith(
+                          color: Colors.red,
                         ),
                       ),
                     ),

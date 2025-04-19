@@ -397,6 +397,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         rankType: 'НОВ',
         birthDate: _birthDate!,
         isDailyQuizDone: false,
+        imageUrl: 'https://icons.veryicon.com/png/o/miscellaneous/two-color-icon-library/user-286.png',
       );
 
       await UserService().createUser(user);
@@ -409,3 +410,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 }
+
