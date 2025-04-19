@@ -8,6 +8,9 @@ import '../screens/nearby_landmarks_screen.dart';
 import '../models/landmark_model.dart';
 import '../services/landmark_service.dart';
 import '../screens/profile_edit_screen.dart';
+import '../services/visited_landmark_service.dart';
+import '../screens/visited_landmarks_list_screen.dart';
+
 
 class UserScreen extends StatefulWidget {
   final String userId;
@@ -39,8 +42,10 @@ class UserScreenState extends State<UserScreen> {
   Future<void> _loadUserAndLandmarks() async {
     try {
       final fetchedUser = await UserService().getUserById(widget.userId);
-      // final count = await UserService().getLandmarksCount(widget.userId);
-      final count = 7; // Временно за брой забележителности
+
+      final count = await VisitedLandmarkService()
+          .getVisitedLandmarksCount(widget.userId);
+
       final fetchedLandmarks = await LandmarkService().getAllLandmarks();
 
       if (!mounted) return;
@@ -136,19 +141,20 @@ class UserScreenState extends State<UserScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _statItem(Icons.rocket_launch, 'Points', user.points, textStyles),
-                      _statItem(Icons.account_balance, 'Landmarks', landmarksCount, textStyles),
-                      _statItem(Icons.local_fire_department, 'Streak', user.streaks, textStyles),
+                      _statItem(Icons.rocket_launch, 'Точки', user.points, textStyles),
+                      _statItem(Icons.account_balance, 'Обекти', landmarksCount, textStyles),
+                      _statItem(Icons.local_fire_department, 'Стрийкс', user.streaks, textStyles),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
 
+                
                 // What's nearby
                 _actionCard(
                   icon: Icons.signpost,
-                  text: "See what's nearby",
-                  buttonText: "Let's see",
+                  text: "Какво е на близо?",
+                  buttonText: "Виж тук",
                   onPressed: () async {
                     final result = await Navigator.push(
                       context,
@@ -186,8 +192,8 @@ class UserScreenState extends State<UserScreen> {
                         Center(
                           child: Text(
                             user.isDailyQuizDone
-                                ? "You've already completed your quiz for today!"
-                                : "It looks like it is time for your daily quiz!",
+                                ? "Поздравления, завършил си своя quiz за днес"
+                                : "Време е за твоя дневен quiz. Не го пропускай! ",
                             style: textStyles['headingLarge'],
                             textAlign: TextAlign.left,
                           ),
@@ -226,7 +232,7 @@ class UserScreenState extends State<UserScreen> {
                                     await _loadUserAndLandmarks();
                                   }
                                 },
-                                child: const Text("Let's start"),
+                                child: const Text("Започни"),
                               ),
                             ],
                           ),
@@ -243,7 +249,7 @@ class UserScreenState extends State<UserScreen> {
   }
 
   Widget _statItem(IconData icon, String label, int value, Map<String, TextStyle> textStyles) {
-    return Column(
+    final content = Column(
       children: [
         Icon(icon, size: 28),
         const SizedBox(height: 4),
@@ -251,7 +257,25 @@ class UserScreenState extends State<UserScreen> {
         Text(value.toString(), style: textStyles['headingLarge']),
       ],
     );
+
+    if (label != 'Обекти') return content;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => VisitedLandmarksListScreen(userId: widget.userId),
+          ),
+        );
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: content,
+      ),
+    );
   }
+
 
   Widget _actionCard({
     required IconData icon,

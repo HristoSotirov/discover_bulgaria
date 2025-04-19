@@ -64,7 +64,7 @@ class RankingScreenState extends State<RankingScreen> {
       appBar: AppBar(
         backgroundColor: colors['background'],
         elevation: 0,
-        title: Text('All Time Ranking', style: textStyles['headingLarge']),
+        title: Text('Обща класация', style: textStyles['headingLarge']),
         centerTitle: true,
       ),
       body: Padding(

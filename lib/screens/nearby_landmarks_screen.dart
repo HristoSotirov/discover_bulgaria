@@ -41,8 +41,9 @@ class NearbyLandmarksScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors['background'],
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: colors['appBar'],
-        title: Text('Nearby', style: textStyles['headingLarge']),
+        title: Text('Обекти наблизо', style: textStyles['headingLarge']),
         centerTitle: true,
       ),
       body: FutureBuilder<Position>(
@@ -127,9 +128,9 @@ class NearbyLandmarksScreen extends StatelessWidget {
                                         },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: colors['button'],
-                                          padding: const EdgeInsets.symmetric(horizontal: 25),
+                                          padding: const EdgeInsets.symmetric(horizontal: 18),
                                         ),
-                                        child: const Text('See more'),
+                                        child: const Text('Виж повече'),
                                       ),
                                       const SizedBox(width: 8),
                                       ElevatedButton(
@@ -141,9 +142,9 @@ class NearbyLandmarksScreen extends StatelessWidget {
                                         },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: colors['button'],
-                                          padding: const EdgeInsets.symmetric(horizontal: 25),
+                                          padding: const EdgeInsets.symmetric(horizontal: 20),
                                         ),
-                                        child: const Text('Navigate'),
+                                        child: const Text('Навигирай'),
                                       ),
                                     ],
                                   ),
@@ -167,7 +168,7 @@ class NearbyLandmarksScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text("Back to home"),
+                    child: const Text("Назад"),
                   ),
                 )
               ],
