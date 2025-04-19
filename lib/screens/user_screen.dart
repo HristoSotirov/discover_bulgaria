@@ -143,7 +143,7 @@ class UserScreenState extends State<UserScreen> {
                     children: [
                       _statItem(Icons.rocket_launch, 'Точки', user.points, textStyles),
                       _statItem(Icons.account_balance, 'Обекти', landmarksCount, textStyles),
-                      _statItem(Icons.local_fire_department, 'Стрийкс', user.streaks, textStyles),
+                      _statItem(Icons.local_fire_department, 'Стрийкс', user.streak, textStyles),
                     ],
                   ),
                 ),

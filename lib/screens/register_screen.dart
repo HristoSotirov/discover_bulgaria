@@ -392,7 +392,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         email: _emailController.text,
         password: _passwordController.text,
         points: 0,
-        streaks: 0,
+        streak: 0,
         userType: UserType.user,
         rankType: 'НОВ',
         birthDate: _birthDate!,

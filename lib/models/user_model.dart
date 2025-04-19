@@ -8,7 +8,7 @@ class UserModel {
   final String email;
   final String password;
   final int points;
-  final int streaks;
+  final int streak;
   final String rankType;
   final UserType userType;
   final DateTime birthDate;
@@ -22,7 +22,7 @@ class UserModel {
     required this.email,
     required this.password,
     required this.points,
-    required this.streaks,
+    required this.streak,
     required this.rankType,
     required this.userType,
     required this.birthDate,
@@ -40,7 +40,7 @@ class UserModel {
       email: json['email'],
       password: json['password'],
       points: json['points'] ?? 0,
-      streaks: json['streaks'] ?? 0,
+      streak: json['streak'] ?? 0,
       rankType: json['rank_type'],
       userType: json['user_type'] != null ? UserType.fromString(json['user_type']) : UserType.user,
       birthDate: DateTime.parse(json['birth_date']),
@@ -57,7 +57,7 @@ class UserModel {
       'email': email,
       'password': password,
       'points': points,
-      'streak': streaks,
+      'streak': streak,
       'rank_type': rankType,
       'user_type': userType.toShortString(),
       'birth_date': birthDate.toIso8601String(),
@@ -93,7 +93,7 @@ class UserModel {
       email: email ?? this.email,
       password: password ?? this.password,
       points: points ?? this.points,
-      streaks: streaks ?? this.streaks,
+      streak: streaks ?? this.streak,
       rankType: rankType ?? this.rankType,
       userType: userType ?? this.userType,
       birthDate: birthDate ?? this.birthDate,
