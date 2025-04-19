@@ -29,7 +29,6 @@ class UserScreenState extends State<UserScreen> {
   bool isLoading = true;
   List<LandmarkModel> allLandmarks = [];
 
-
   @override
   void initState() {
     super.initState();
@@ -40,10 +39,9 @@ class UserScreenState extends State<UserScreen> {
   Future<void> _loadUserAndLandmarks() async {
     try {
       final fetchedUser = await UserService().getUserById(widget.userId);
-      //final count = await UserService().getLandmarksCount(widget.userId);
-      final count = 7;
+      // final count = await UserService().getLandmarksCount(widget.userId);
+      final count = 7; // Временно за брой забележителности
       final fetchedLandmarks = await LandmarkService().getAllLandmarks();
-
 
       if (!mounted) return;
 
@@ -151,18 +149,22 @@ class UserScreenState extends State<UserScreen> {
                   icon: Icons.signpost,
                   text: "See what's nearby",
                   buttonText: "Let's see",
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => NearbyLandmarksScreen(
                           allLandmarks: allLandmarks,
-                          userId: widget.userId, // ако си в StatefulWidget и имаш `userId`
+                          userId: widget.userId,
                         ),
                       ),
                     );
-                  },
 
+                    // Refresh the screen if landmarks were updated
+                    if (result == true) {
+                      refresh(); // Reload the landmarks and user data
+                    }
+                  },
                   colors: colors,
                   textStyles: textStyles,
                 ),
@@ -218,7 +220,7 @@ class UserScreenState extends State<UserScreen> {
                                       builder: (context) => DailyQuizScreen(currentUser: user),
                                     ),
                                   );
-                                  
+
                                   // Refresh the screen if quiz was completed
                                   if (result == true) {
                                     await _loadUserAndLandmarks();
@@ -283,4 +285,3 @@ class UserScreenState extends State<UserScreen> {
     );
   }
 }
-

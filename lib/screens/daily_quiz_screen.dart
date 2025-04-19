@@ -324,7 +324,7 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
                 ),
                 const SizedBox(height: 32),
                 FutureBuilder<String>(
-                  future: _prefsManager.translate('Върни се в началото'),
+                  future: _prefsManager.translate('Към начален екран'),
                   builder: (context, snapshot) {
                     return ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(true),
@@ -334,7 +334,7 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
                             horizontal: 32, vertical: 16),
                       ),
                       child: Text(
-                        snapshot.data ?? 'Върни се в началото',
+                        snapshot.data ?? 'Към начален екран',
                         style: textStyles['buttonText'],
                       ),
                     );

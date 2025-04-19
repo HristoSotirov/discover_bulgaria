@@ -4,7 +4,7 @@ import '../models/landmark_model.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import '../screens/landmark_quiz_screen.dart';
-import '../services/landmark_service.dart'; // не забравяй това
+import '../services/landmark_service.dart';
 
 class LandmarkDetailsScreen extends StatefulWidget {
   final LandmarkModel landmark;
@@ -30,6 +30,14 @@ class _LandmarkDetailsScreenState extends State<LandmarkDetailsScreen> {
     super.initState();
     _checkProximityAndVisit();
   }
+
+  void refresh() {
+    setState(() {
+      isLoading = true;
+    });
+    _checkProximityAndVisit();
+  }
+
 
   Future<void> _checkProximityAndVisit() async {
     final permission = await Geolocator.checkPermission();
@@ -94,14 +102,22 @@ class _LandmarkDetailsScreenState extends State<LandmarkDetailsScreen> {
             ElevatedButton(
               onPressed: isLoading || !isNear || isVisited
                   ? null
-                  : () {
-                Navigator.push(
+                  : () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => LandmarkQuizScreen(landmark: widget.landmark),
+                    builder: (context) => LandmarkQuizScreen(
+                      landmark: widget.landmark,
+                      userId: widget.userId,
+                    ),
                   ),
                 );
+
+                if (result == true) {
+                  refresh();
+                }
               },
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors['button'],
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
