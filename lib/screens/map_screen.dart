@@ -219,7 +219,7 @@ class MapScreenState extends State<MapScreen> {
 
                         },
 
-                        child: Text(expanded ? "Hide info" : "See more"),
+                        child: Text(expanded ? "Скрий" : "Виж повече"),
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -233,7 +233,7 @@ class MapScreenState extends State<MapScreen> {
                           );
                           launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                         },
-                        child: const Text("Navigate"),
+                        child: const Text("Навигирай ме"),
                       ),
                     ],
                   ),

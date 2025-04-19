@@ -64,10 +64,19 @@ class _LandmarkDetailsScreenState extends State<LandmarkDetailsScreen> {
     return Scaffold(
       backgroundColor: colors['background'],
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: colors['appBar'],
-        title: Text(widget.landmark.name, style: styles['headingLarge']),
         centerTitle: true,
+        title: Text(
+          widget.landmark.name,
+          style: styles['headingLarge'],
+          softWrap: true,
+          overflow: TextOverflow.visible,
+          maxLines: 2, // или повече ако искаш
+          textAlign: TextAlign.center,
+        ),
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -109,12 +118,12 @@ class _LandmarkDetailsScreenState extends State<LandmarkDetailsScreen> {
               ),
               child: Text(
                 isLoading
-                    ? "Checking location..."
+                    ? "Проверяване на локацията..."
                     : isVisited
-                    ? "Already visited"
+                    ? "Вече е посетено"
                     : !isNear
-                    ? "Get closer to unlock quiz"
-                    : "Make the quiz",
+                    ? "Приближи се за да откключиш"
+                    : "Реши въпрсите",
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -123,7 +132,7 @@ class _LandmarkDetailsScreenState extends State<LandmarkDetailsScreen> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text("Back to map", style: TextStyle(color: colors['accent'])),
+              child: Text("Назад", style: TextStyle(color: colors['accent'])),
             ),
           ],
         ),
