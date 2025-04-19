@@ -77,9 +77,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           _refreshCurrentScreen();
         },
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.house), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
-          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Ranking'),
+          BottomNavigationBarItem(icon: Icon(Icons.house), label: 'Начало'),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Карта'),
+          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Класация'),
         ],
       ),
     );

@@ -68,4 +68,17 @@ class VisitedLandmarkService {
       throw Exception('Failed to update visited landmark: $error');
     }
   }
+  /// Взимане на броя на посетените забележителности от потребител
+  Future<int> getVisitedLandmarksCount(String userId) async {
+    try {
+      final List<dynamic> data = await _client
+          .from('visited_landmarks')
+          .select()
+          .eq('user_id', userId);
+
+      return data.length;
+    } catch (error) {
+      throw Exception('Failed to get visited landmarks count: $error');
+    }
+  }
 }
