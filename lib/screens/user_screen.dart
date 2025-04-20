@@ -192,8 +192,8 @@ class UserScreenState extends State<UserScreen> {
                         Center(
                           child: Text(
                             user.isDailyQuizDone
-                                ? "Поздравления, завършил си своя quiz за днес"
-                                : "Време е за твоя дневен quiz. Не го пропускай! ",
+                                ? "Поздравления, завърши своята викторина за днес!"
+                                : "Време е за викторина. \nНе я пропускай! ",
                             style: textStyles['headingLarge'],
                             textAlign: TextAlign.left,
                           ),

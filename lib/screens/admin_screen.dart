@@ -228,7 +228,6 @@ class _AdminMainScreenState extends State<AdminScreen> {
   }
 }
 
-// Екран за добавяне на пейзаж
 class AddLandscapeScreen extends StatefulWidget {
   const AddLandscapeScreen({super.key});
 
@@ -527,7 +526,6 @@ class _AddLandscapeScreenState extends State<AddLandscapeScreen> {
   }
 }
 
-// Екран за изтриване на пейзаж
 class DeleteLandscapeScreen extends StatefulWidget {
   const DeleteLandscapeScreen({super.key});
 
@@ -586,7 +584,7 @@ class _DeleteLandscapeScreenState extends State<DeleteLandscapeScreen> {
       appBar: AppBar(
         backgroundColor: _prefsManager.currentColors['appBar'],
         title: FutureBuilder<String>(
-          future: _prefsManager.translate('Изтриване на пейзаж'),
+          future: _prefsManager.translate('Изтриване на забележителност'),
           builder: (context, snapshot) => Text(
             snapshot.data ?? '',
             style: _prefsManager.currentStyles['heading'],
