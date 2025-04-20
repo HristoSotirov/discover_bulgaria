@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:discover_bulgaria/config/preferences_manager.dart';
 import 'package:discover_bulgaria/screens/register_screen.dart';
 import 'package:discover_bulgaria/services/user_service.dart';
-import 'package:discover_bulgaria/screens/user_screen.dart';
 import 'package:discover_bulgaria/screens/admin_screen.dart';
 import 'package:discover_bulgaria/models/enums/user_type.dart';
 import 'package:discover_bulgaria/screens/main_navigation_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 
 class LoginScreen extends StatefulWidget {
@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (user != null) {
         await _prefsManager.saveUserSession(user.id!);
-        
+
         if (!mounted) return;
 
         Navigator.pushReplacement(
@@ -44,7 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
             builder: (context) => user.userType == UserType.admin
                 ? AdminScreen(userId: user.id!, initialUserData: user)
                 : MainNavigationScreen(user: user),
-
           ),
         );
       }
@@ -58,6 +57,21 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  Future<void> signInWithGoogle(BuildContext context) async {
+    try {
+      final supabase = Supabase.instance.client;
+
+      await supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.flutter://login-callback/',
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Грешка при Google вход: $e')),
+      );
     }
   }
 
@@ -78,18 +92,22 @@ class _LoginScreenState extends State<LoginScreen> {
               _prefsManager.translate('Моля, попълнете всички полета'),
             ]),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) return Center(
-                child: CircularProgressIndicator(
-                  color: _prefsManager.currentColors['button']
-                ),
-              );
+              if (!snapshot.hasData) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: _prefsManager.currentColors['button'],
+                  ),
+                );
+              }
 
               final texts = snapshot.data as List<String>;
+
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(texts[0],
+                  Text(
+                    texts[0],
                     style: _prefsManager.currentStyles['headingLarge'],
                     textAlign: TextAlign.center,
                   ),
@@ -160,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? CircularProgressIndicator(color: _prefsManager.currentColors['background'])
                         : Text(texts[3]),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 5),
                   TextButton(
                     onPressed: () {
                       Navigator.pushReplacement(
@@ -175,6 +193,40 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+                  SizedBox(height: 30),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(thickness: 1)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          'или',
+                          style: _prefsManager.currentStyles['bodyRegular'],
+                        ),
+                      ),
+                      Expanded(child: Divider(thickness: 1)),
+                    ],
+                  ),
+                  SizedBox(height: 30),
+                  ElevatedButton.icon(
+                    icon: Image.network(
+                      'https://img.icons8.com/color/512/google-logo.png',
+                      height: 24,
+                      width: 24,
+                    ),
+                    label: Text('Вход с Google'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                    ),
+                    onPressed: () => signInWithGoogle(context),
+                  ),
+
                 ],
               );
             },
