@@ -153,7 +153,7 @@ class UserScreenState extends State<UserScreen> {
                 // What's nearby
                 _actionCard(
                   icon: Icons.signpost,
-                  text: "Какво е на близо?",
+                  text: "Какво е наблизо?",
                   buttonText: "Виж тук",
                   onPressed: () async {
                     final result = await Navigator.push(
