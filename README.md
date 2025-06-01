@@ -66,5 +66,5 @@ Storage – при нужда за съхранение на изображен�
 
 1. **Клонирай репото**
    ```bash
-   git clone https://github.com/your-username/opoznai-bulgaria.git
-   cd opoznai-bulgaria
+   git clone https://github.com/HristoSotirov/discover_bulgaria
+   cd discover_bulgaria
